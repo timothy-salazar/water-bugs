@@ -38,8 +38,15 @@ A tool that could identify benthic macroinvertebrates from images could save tim
           - trimming images
           - scale to same resolution
           - etc.
-2. Take weights from a pre-trained model and load them into a convolutional neural network (this will save training time)
-3. Train a CNN to identify the images down to as fine a taxonomic resolution as is possible in the time I have.
+2. Some image sets (the troutnet image set, for example) have a lot of images that I can't use. 
+    - cull unuseable images
+        - close ups
+        - duplicates
+        - etc.
+3. Move processed images to S3 instance
+    - I will probably need to use AWS to train my CNN
+4. Take weights from a pre-trained model and load them into a convolutional neural network (this will save training time)
+5. Train a CNN to identify the images down to as fine a taxonomic resolution as is possible in the time I have.
 
 
 
