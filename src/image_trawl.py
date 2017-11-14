@@ -184,9 +184,9 @@ class imageScraper():
             d = ';'.join(c+taxo+['\n'])
             meta_info.append(d)
             img_arr = imread(requests.get(src, stream=True).raw)
-            imsave("../images/troutnut/{}/{}.jpg".format(order_dir,a[i]['name']), img_arr)
+            imsave("../data/troutnut/{}/{}.jpg".format(order_dir,a[i]['name']), img_arr)
         print(len(a), "images saved successfully")
-        with open("../images/troutnut/{}/meta.txt".format(order_dir),"a") as f:
+        with open("../data/troutnut/{}/meta.txt".format(order_dir),"a") as f:
             for i in range(len(meta_info)):
                 #f.write(image_name[i]+','+source_info[i]+','+source_info[i]+','+source_info_alt+','+image_url[i])
                 f.write(meta_info[i])
