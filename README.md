@@ -28,6 +28,16 @@ To calculate a metric such as the Shannon-Wiener Index, we need to identify whic
 A tool that could identify benthic macroinvertebrates from images could save time and allow amateurs to participate more readily in the stewardship of our waterways. To this end, I intend to:
 
 1. Collect, label, and preprocess images of benthic macroinvertebrates I collected from the Boulder Creek, as well as images scrapped from the web.
+  - Find at least 30 additional images per day
+  - Label each image with as much taxonomic depth as is available
+      - this can be automated for some image sets (troutnet images, my webscraper collected metadata including taxonomy)
+      - Directory: file name: Order: Family: Genus: Species
+  - Preprocessing:
+      - These are coming from different sources, which might be a problem. If one website is weighted heavily towards  ephemeroptera (troutnet), I don't want my CNN to pick up on watermarks/characteristic style as a factor. 
+      - Image processing pipeline that includes:
+          - trimming images
+          - scale to same resolution
+          - etc.
 2. Take weights from a pre-trained model and load them into a convolutional neural network (this will save training time)
 3. Train a CNN to identify the images down to as fine a taxonomic resolution as is possible in the time I have.
 
