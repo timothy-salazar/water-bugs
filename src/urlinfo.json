@@ -1,0 +1,39 @@
+{
+  "orders": [
+    "Insect-Ephemeroptera-Mayflies",
+    "Insect-Trichoptera-Caddisflies",
+    "Insect-Plecoptera-Stoneflies",
+    "Insect-Odonata-Zygoptera-Damselflies",
+    "Insect-Odonata-Anisoptera-Dragonflies",
+    "Insect-Megaloptera-Hellgrammites-Dobsonflies-and-Alderflies",
+    "Insect-Hymenoptera-Ants-Bees-and-Wasps",
+    "Insect-Hemiptera-True-Bugs",
+    "Insect-Diptera-True-Flies",
+    "Insect-Coleoptera-Beetles"
+  ],
+  "tn_nums": [
+      "4",
+      "12",
+      "13",
+      "63",
+      "62",
+      "66",
+      "76",
+      "74",
+      "60",
+      "64"
+  ],
+  "directory": [
+    "ephemeroptera",
+    "trichoptera",
+    "plecoptera",
+    "z_odonata",
+    "a_odonata",
+    "megaloptera",
+    "hymenoptera",
+    "hemiptera",
+    "diptera",
+    "coleoptera"
+  ]
+
+}
