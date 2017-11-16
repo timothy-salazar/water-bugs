@@ -130,22 +130,22 @@ class imageScraper():
         # back to it, picking up where I left off.
         # useful for tinkering.
     def pickle_queue(self):
-        with open('Q.pkl','wb') as f:
+        with open('pickle/Q.pkl','wb') as f:
             pickle.dump(self.Q,f)
 
         # recovers the previously pickled queue
     def unpickle_queue(self):
-        with open('Q.pkl','rb') as f:
+        with open('pickle/Q.pkl','rb') as f:
             self.Q = pickle.load(f)
 
         # backup of the queue
     def pickle_queue_master(self):
-        with open('Q_master.pkl','wb') as f:
+        with open('pickle/Q_master.pkl','wb') as f:
             pickle.dump(self.Q,f)
         self.pickle_queue()
         # unpickle backup
     def unpickle_master(self):
-        with open('Q_master.pkl','rb') as f:
+        with open('pickle/Q_master.pkl','rb') as f:
             self.Q = pickle.load(f)
         self.pickle_queue()
 

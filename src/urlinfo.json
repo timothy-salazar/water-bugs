@@ -6,7 +6,6 @@
     "Insect-Odonata-Zygoptera-Damselflies",
     "Insect-Odonata-Anisoptera-Dragonflies",
     "Insect-Megaloptera-Hellgrammites-Dobsonflies-and-Alderflies",
-    "Insect-Hymenoptera-Ants-Bees-and-Wasps",
     "Insect-Hemiptera-True-Bugs",
     "Insect-Diptera-True-Flies",
     "Insect-Coleoptera-Beetles"
@@ -18,7 +17,6 @@
       "63",
       "62",
       "66",
-      "76",
       "74",
       "60",
       "64"
@@ -30,7 +28,6 @@
     "z_odonata",
     "a_odonata",
     "megaloptera",
-    "hymenoptera",
     "hemiptera",
     "diptera",
     "coleoptera"
