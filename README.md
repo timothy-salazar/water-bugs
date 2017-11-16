@@ -54,6 +54,18 @@ A tool that could identify benthic macroinvertebrates from images could save tim
 
 # Works Cited
 
+J. Ärje, V et al. "Human Experts Vs. Machines in Taxa Recognition." Statistical Machine Learning. Retrieved from: https://arxiv.org/abs/1708.06899. (2017)
+
+Raitoharju, J. et al. "Data Enrichment in Fine-Grained Classification of Aquatic Macroinvertebrates." 2016 ICPR 2nd Workshop on Computer Vision for Analysis of Underwater Imagery (CVAUI), Cancun, 2016, pp. 43-48. doi: 10.1109/CVAUI.2016.020
+
+S. Kiranyaz, T. Ince, A. Iosifidis and M. Gabbouj, “Progressive Operational Perceptrons”, Neurocomputing (Elsevier), vol. 224, pp. 142-154, Feb. 2017. http://dx.doi.org/10.1016/j.neucom.2016.10.044
+
+Ärje, J. (2016). Improving statistical classification methods and ecological status assessment for river macroinvertebrates. University of Jyväskylä, Department of Mathematics and Statistics, Report 156.
+
+Ärje, J.,  Kärkkäinen, S., Meissner, K.,  Iosifidis, A.,  Ince, T., Gabbouj, M.,  Kiranyaz, S.  (2017) The effect of automated taxa identification errors on biological indices, Expert Systems with Applications, Volume 72, 15 April 2017, Pages 108-120, ISSN 0957-4174.https://doi.org/10.1016/j.eswa.2016.12.015
+
+Ärje, J., Divino, F., Choi, K-P, Meissner, K. and S. Kärkkäinen (2016):Understanding the Statistical Properties of the Percent Model Affinity Index Can Improve Biomonitoring Related Decision Making. Stochastic Environmental Research and Risk Assessment 2016; 30 (7): 1981-2008.
+
 Alba-Tercedor, J. “Aquatic Macroinvertebrates.” Biological Monitoring of Rivers: Applications and Perspectives. John Wiley and Sons, Ltd., West Sussex, pp. 71-87. (2006).
 
 Barbour, M., Gerritsen, J., Snyder, B., et al. Rapid Bioassessment Protocols for Use in Streams and Wadable Rivers: Periphyton, Benthic Macroinvertebrates and Fish, Second Edition. US Environmental Protection Agency. (1999). 
