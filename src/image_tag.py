@@ -21,39 +21,175 @@ class imageCycle:
         self.cid = ax.figure.canvas.mpl_connect('button_press_event',self)
         self.cid2 = ay.figure.canvas.mpl_connect('button_press_event',self)
         self.last_entry = ''
-        self.Q = deque()
+        with open('pickle/imQ2.pkl','rb') as f:
+            self.Q = pickle.load(f)
+        columns=['file_name','ready','back_view','side_view','ruler','hand_nature',
+                'multiple','contrast','noisy_background','other','choice_count']
+        self.df = pd.DataFrame(columns = columns)
+        # with open("../data/second_pass.txt","a") as f:
+        #     f.write(';'.join(columns)+'\n')
+        self.pause = False
+        self.next_image()
+        self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
+
         #self.Q = self.unpickle_queue()
 
     # this function is a bit tricky. It uses the mpl_connect module from
     # matplotlib. In a nutshell, whenever there is a click on the screen
     # this function detects it, and the path to a picture is popped from
     # the queue. It's displayed, and the
+
+    def save_quit(self,a):
+        self.Q.appendleft(self.last_entry)
+        self.Q.appendleft(a)
+        print('Saving progress...')
+        self.pickle_queue()
+        print('Goodbye!')
+        plt.close()
+
+    def save_cont(self):
+        # end_token = ";1;None;\n"
+        print('saving',self.last_entry,'to second_pass.txt...')
+        with open("../data/second_pass.txt","a") as f:
+            f.write(str(self.im_row)[1:][:-1].replace(',',';') +';\n')
+        ind = self.df.shape[0]
+        self.df.loc[ind] = self.im_row
+        self.pause = False
+        print('saved.')
+        self.next_image()
+        self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
+
+    def next_image(self):
+        self.a = self.Q.pop()
+        b = imread(self.a)
+        self.ax.imshow(b)
+        self.ax.figure.canvas.draw()
+
     def __call__(self,event):
-        end_token = ";1;None;\n"
         Q = self.unpickle_queue()
         print('click', event)
         if event.inaxes!=self.ay.axes:
             return
-        a = self.Q.pop()
-        b = imread(a)
-        self.ax.imshow(b)
-        self.ax.figure.canvas.draw()
-        if event.dblclick:
-            self.Q.appendleft(self.last_entry)
-            self.Q.appendleft(a)
-            print('Saving progress...')
-            self.pickle_queue()
-            print('Goodbye!')
-            plt.close()
+        # if self.pause == False:
+        #     self.next_image()
+        #     self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
         if event.button == 1:
-            print((event.x))
-            print('skipping entry',a)
-        elif event.button == 3:
-            print('saving',self.last_entry,'to second_pass.txt...')
-            with open("../data/second_pass.txt","a") as f:
-                f.write(self.last_entry+end_token)
-            print('saved.')
-        self.last_entry = a
+            self.pause = True
+            if 1100<event.x<1440:
+                #Column 1: save, skip, back one
+                if 558<event.y<856:
+                    ########
+                    # Save #
+                    ########
+                    if sum(self.im_row) == 0:
+                        self.im_row[0] = self.a
+                        self.im_row[1] = 1
+                    else:
+                        self.im_row[0] = self.a
+                    self.save_cont()
+                    # print('saving',self.last_entry,'to second_pass.txt...')
+                    # with open("../data/second_pass.txt","a") as f:
+                    #     f.write(self.last_entry+end_token)
+                    # ind = self.df.shape[0]
+                    # self.df.loc[ind] = self.im_row
+                    # self.pause = False
+                    # print('saved.')
+                    # self.next_image()
+                    # self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
+                elif 390<event.y<548:
+                    # Skip
+                    self.pause = False
+                    print('skipping entry',self.a)
+                    self.next_image()
+                    self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
+                elif 238<event.y<385:
+                    # Back One
+                    pass
+                elif 110<event.y<225:
+                    # Quit
+                    self.save_quit(self.a)
+
+            elif 1448<event.x<1619:
+                # column 2: back view, side view, ruler, hand/nature
+                if 709<event.y<856:
+                    # Back View
+                    self.im_row[2] = 1
+                elif 558<event.y<701:
+                    # Side View
+                    self.im_row[3] = 1
+                elif 390<event.y<548:
+                    # Ruler
+                    self.im_row[4] = 1
+                elif 238<event.y<385:
+                    # Hand/nature
+                    self.im_row[5] = 1
+                elif 110<event.y<225:
+                    # Quit
+                    self.save_quit(self.a)
+            elif 1625<event.x<1792:
+                # column 3: multiple, contrast, noisy background, other
+                if 709<event.y<856:
+                    #Multiple
+                    self.im_row[6] = 1
+                elif 558<event.y<701:
+                    # Contrast
+                    self.im_row[7] = 1
+                elif 390<event.y<548:
+                    # Noisy Background
+                    self.im_row[8] = 1
+                elif 238<event.y<385:
+                    # Other
+                    self.im_row[9] = 1
+                elif 110<event.y<225:
+                    # Quit
+                    self.save_quit(self.a)
+            # print((event.x))
+            # print('skipping entry',self.a)
+        # elif event.button == 3:
+        #     print('saving',self.last_entry,'to second_pass.txt...')
+        #     with open("../data/second_pass.txt","a") as f:
+        #         f.write(self.last_entry+end_token)
+        #     print('saved.')
+        if event.button == 3:
+            if 1448<event.x<1619:
+                # column 2: back view, side view, ruler, hand/nature
+                if 709<event.y<856:
+                    # Back View
+                    self.im_row[2] = 1
+                elif 558<event.y<701:
+                    # Side View
+                    self.im_row[3] = 1
+                elif 390<event.y<548:
+                    # Ruler
+                    self.im_row[4] = 1
+                elif 238<event.y<385:
+                    # Hand/nature
+                    self.im_row[5] = 1
+                elif 110<event.y<225:
+                    # Quit
+                    self.save_quit(self.a)
+            elif 1625<event.x<1792:
+                # column 3: multiple, contrast, noisy background, other
+                if 709<event.y<856:
+                    #Multiple
+                    self.im_row[6] = 1
+                elif 558<event.y<701:
+                    # Contrast
+                    self.im_row[7] = 1
+                elif 390<event.y<548:
+                    # Noisy Background
+                    self.im_row[8] = 1
+                elif 238<event.y<385:
+                    # Other
+                    self.im_row[9] = 1
+                elif 110<event.y<225:
+                    # Quit
+                    self.save_quit(self.a)
+                else:
+                    return
+            self.save_cont()
+
+        self.last_entry = self.a
 
     # this function builds a queue from the metadata files in the
     # image directories.
@@ -158,7 +294,7 @@ class imageCycle:
         b = [i - 1 for i in a]
         self.Q = deque()
         [self.Q.append(i) for i in origQ[b]]
-        with open("../data/left_shifted.txt","a") as f:
+        with open("../data/left_shifted3.txt","a") as f:
             f.write('file_name;choice_count;extra;\n')
             for i in self.Q:
                 f.write(i+';1;None;\n')
@@ -177,7 +313,7 @@ if __name__ == '__main__':
     #imc.rebuild_queue()
     #imc.read_meta()
     #imc.read_from_txt()
-    #imc.shift_left()
+    imc.shift_left()
     plt.show()
 
 
