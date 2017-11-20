@@ -1,1 +1,11 @@
 data
+src/pickle
+src/program_docs
+src/test2.py
+src/isort.py
+src/isort2.py
+src/imsort.py
+src/image_trawl3.py
+src/.DS_Store
+.DS_Store
+.gitignore
