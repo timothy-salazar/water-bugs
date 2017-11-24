@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from image_tag2 import imageCycle
 import matplotlib.pyplot as plt
+from matplotlib.widgets import  RectangleSelector
+from pylab import *
 from skimage.io import imread, imshow, imsave
 from skimage.transform import resize
 from sklearn.model_selection import train_test_split
@@ -23,7 +25,7 @@ def read_meta():
 
 def read_from_txt():
     Q = []
-    df = pd.read_csv('../data/first_pass.txt',sep=';')
+    df = pd.read_csv('../data/txt_docs/first_pass.txt',sep=';')
     for f in df.file_name:
         Q.append(f)
     return Q
@@ -78,7 +80,6 @@ def unpickle_dfs():
 def split_dfs(df_list):
     return [train_test_split(df.file_path) for df in df_list]
 
-
 def resize_save(x_split,x_set,dir,out_dict):
     for val, file_path in enumerate(x_split):
         a = imread(file_path)
@@ -105,26 +106,26 @@ def image_preprocess(df):
     df['sub_file_path'] = [out_dict[df.file_path[i]] for i in range(len(df))]
     return df
 
-# sub_set = ['ephemeroptera','trichoptera','plecoptera','diptera']
-# df = create_subset(sub_set)
+def onselect(eclick, erelease):
+    'eclick and erelease are matplotlib events at press and release'
+    print(' startposition : (%f, %f)' % (eclick.xdata, eclick.ydata))
+    print(' endposition   : (%f, %f)' % (erelease.xdata, erelease.ydata))
+    print(' used button   : ', eclick.button)
 
+sub_set = ['ephemeroptera','trichoptera','plecoptera','diptera']
+df = create_subset(sub_set)
 
+fig = plt.figure(figsize=(10,5))
+ax = fig.add_subplot(121)
+ay = fig.add_subplot(122)
 
+plecoptera_df = df.loc[np.where(df.order == 'Plecoptera (Stoneflies)')[0]]
+plecoptera_df['index'] = np.arange(plecoptera_df.shape[0])
+plecoptera_df.set_index('index', inplace=True)
 
-# fig = plt.figure()
-# ax = fig.add_subplot(111)
-#plt.show()
-# imc = imageCycle([ax],df)
-# plecoptera_df = df.loc[np.where(df.order == 'Plecoptera (Stoneflies)')[0]]
-# plecoptera_df['index'] = np.arange(plecoptera_df.shape[0])
-# plecoptera_df.set_index('index', inplace=True)
-# a = imread(plecoptera_df.file_path[0])
-# b = resize(a,(299,299))
-# imshow(b)
-# plt.show()
-# #skread
-# imc = imageCycle([ax],plecoptera_df)
-# plt.show()
+imc = imageCycle([ax,ay],plecoptera_df)
+
+plt.show()
 
 
 

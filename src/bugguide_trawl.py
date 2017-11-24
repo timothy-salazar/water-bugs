@@ -65,12 +65,8 @@ class imageScraper():
     # It goes through the pages of that subforum until it reaches
     # the max page, and then it moves on to the next sub-forum.
     def iter_order(self):
-        u_list = ['https://bugguide.net/node/view/5233',
-                'https://bugguide.net/node/view/76',
-                'https://bugguide.net/node/view/55',
-                'https://bugguide.net/node/view/78']
-        file_paths = ['../data/bug_guide/trichoptera','../data/bug_guide/plecoptera',
-        '../data/bug_guide/diptera','../data/bug_guide/ephemeroptera']
+        u_list = ['https://bugguide.net/node/view/78']
+        file_paths = ['../data/bug_guide/ephemeroptera']
         for u, f in zip(u_list, file_paths):
             self.url = u
             self.file_path = f
@@ -154,7 +150,7 @@ class imageScraper():
             print('Metadata saved:',self.ml)
 
 
-#file_name;location;date_collected;size,order;family;genus;species;
+#file_name;location;date_collected;size;order;family;genus;species;
 
         # self.url = self.Q.popleft()
         # req = requests.get(self.url)

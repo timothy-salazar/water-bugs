@@ -210,7 +210,7 @@ class imageCycle:
     # without any further manipulation for a quick, initial run through
     def read_from_txt(self):
         self.Q = deque()
-        df = pd.read_csv('../data/first_pass.txt',sep=';')
+        df = pd.read_csv('../data/txt_docs/first_pass.txt',sep=';')
         for f in df.file_name:
             self.Q.append(f)
         self.pickle_queue()
