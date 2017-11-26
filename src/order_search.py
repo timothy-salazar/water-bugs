@@ -67,8 +67,27 @@ def create_subset(sub_set):
     df2.set_index('index', inplace=True)
     return df2
 
+def df_from_meta(col):
+    dirs=['plecoptera',
+            'trichoptera',
+            'diptera',
+            'ephemeroptera']
+    # columns = ['file_name','location','date_collected','size',
+    #             'order','family','genus', 'species']
+    df = pd.DataFrame()
+    f_list = []
+    for d in dirs:
+        directory = '../data/{}/{}/meta.txt'.format(col,d)
+        df_temp = pd.read_csv(directory,sep=';')
+        df = df.append(df_temp)
+        f_list = np.concatenate((f_list,['../data/{}/{}/{}'.format(col,d,i)
+                                for i in df_temp.file_name]), axis = 0)
+    df['file_path'] = f_list
+    df['index'] = np.arange(df.shape[0])
+    df.set_index('index', inplace=True)
+    return df
 
-def unpickle_dfs():
+def unpickle_dfs(dfs):
     dfs = ['pickle/plecoptera_df.pkl','pickle/trichoptera_df.pkl',
             'pickle/diptera_df.pkl','pickle/ephemeroptera_df.pkl']
     df_list = []
@@ -80,14 +99,14 @@ def unpickle_dfs():
 def split_dfs(df_list):
     return [train_test_split(df.file_path) for df in df_list]
 
-def resize_save(x_split,x_set,dir,out_dict):
-    for val, file_path in enumerate(x_split):
-        a = imread(file_path)
-        b = resize(a,(299,299))
-        c = '../data/{}/{}/{}.jpg'.format(x_set,d,str(val).zfill(3))
-        imsave(c,b)
-        out_dict[file_path] = c
-    return out_dict
+# def resize_save(x_split,x_set,dir,out_dict):
+#     for val, file_path in enumerate(x_split):
+#         a = imread(file_path)
+#         b = resize(a,(299,299))
+#         c = '../data/{}/{}/{}.jpg'.format(x_set,d,str(val).zfill(3))
+#         imsave(c,b)
+#         out_dict[file_path] = c
+#     return out_dict
 
 def split_process(split_df_list):
     dir_list = ['plecoptera','trichoptera','diptera','ephemeroptera']
@@ -106,26 +125,53 @@ def image_preprocess(df):
     df['sub_file_path'] = [out_dict[df.file_path[i]] for i in range(len(df))]
     return df
 
-def onselect(eclick, erelease):
-    'eclick and erelease are matplotlib events at press and release'
-    print(' startposition : (%f, %f)' % (eclick.xdata, eclick.ydata))
-    print(' endposition   : (%f, %f)' % (erelease.xdata, erelease.ydata))
-    print(' used button   : ', eclick.button)
+def run_imc(df):
+    fig = plt.figure(figsize=(10,5))
+    ax = fig.add_subplot(121)
+    ay = fig.add_subplot(122)
+    imc = imageCycle([ax,ay],df)
+    plt.show()
+
+
 
 sub_set = ['ephemeroptera','trichoptera','plecoptera','diptera']
-df = create_subset(sub_set)
+# df = create_subset(sub_set)
+#
 
-fig = plt.figure(figsize=(10,5))
-ax = fig.add_subplot(121)
-ay = fig.add_subplot(122)
+#df_bug = bugguide()
+#plec_bug = df_bug.loc[np.where(df_bug.order == 'Stoneflies (Plecoptera)')[0]]
+#tric_bug = df_bug.loc[np.where(df_bug.order == 'Caddisflies (Trichoptera)')[0]]
+#dipt_bug = df_bug.loc[np.where(df_bug.order == 'Flies (Diptera)')[0]]
+#ephem_bug = df_bug.loc[np.where(df_bug.order == 'Mayflies (Ephemeroptera)')[0]]
+# a = np.unique(ephem_bug.file_name, return_counts = True)
+# multi_vals = a[0][np.where(a[1]>1)]
+# c = [np.where(ephem_bug.file_name == i)[0] for i in multi_vals]
+# ephem_bug['index'] = np.arange(ephem_bug.shape[0])
+# ephem_bug.set_index('index', inplace=True)
+# [ephem_bug.drop(i, inplace=True) for i in c]
 
-plecoptera_df = df.loc[np.where(df.order == 'Plecoptera (Stoneflies)')[0]]
-plecoptera_df['index'] = np.arange(plecoptera_df.shape[0])
-plecoptera_df.set_index('index', inplace=True)
+df_trout = df_from_meta('troutnut')
+plec_trout = df_trout.loc[np.where(df_trout.order == 'Plecoptera (Stoneflies)')[0]]
 
-imc = imageCycle([ax,ay],plecoptera_df)
+# fig = plt.figure(figsize=(10,5))
+# ax = fig.add_subplot(121)
+# ay = fig.add_subplot(122)
+# imc = imageCycle([ax,ay],ephem_bug)
+# plt.show()
 
-plt.show()
+
+
+
+# imc = imageCycle([ax,ay],df)
+# plt.show()
+
+# drop 50,
+# plecoptera_df = df.loc[np.where(df.order == 'Plecoptera (Stoneflies)')[0]]
+# ephem_bug['index'] = np.arange(ephem_bug.shape[0])
+# ephem_bug.set_index('index', inplace=True)
+
+# #
+
 
 
 

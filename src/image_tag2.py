@@ -40,7 +40,7 @@ class imageCycle:
         self.inc = 0
         self.inc_t = 0
         self.df = df
-        self.Q = deque(df.file_path)
+        #self.Q = deque(df.file_path)
         self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
         self.set_index()
         self.next_image()
@@ -74,6 +74,13 @@ class imageCycle:
         elif event.inaxes==self.ay.axes:
             print('within ay axes')
             self.fine_sort(event)
+
+    def accept_df(self,df):
+        self.df = df
+        self.inc_t = 0
+        user_input = input('reset count?')
+        if user_input == 'y':
+            self.inc = 0
 
     def coarse_sort(self, event):
         #print('line 53')
@@ -184,8 +191,9 @@ class imageCycle:
                     # Back View
                     self.im_row[2] = 1
                 elif 558<event.y<701:
-                    # Crop
-                    self.im_row[3] = 1
+                    # watermark
+                    print('watermark...')
+                    self.watermark()
                 elif 390<event.y<548:
                     # Ruler
                     self.im_row[4] = 1
@@ -199,7 +207,7 @@ class imageCycle:
                 # column 3: multiple, contrast, noisy background, other
                 if 709<event.y<856:
                     # Side View
-                    self.im_row[6] = 1
+                    self.im_row[3] = 1
                 elif 558<event.y<701:
                     # Contrast
                     self.im_row[7] = 1
@@ -246,14 +254,21 @@ class imageCycle:
         plt.close()
 
     def save_quit_fine(self):
-        self.Q.appendleft(self.last_entry)
-        self.Q.appendleft(self.a)
+        # self.Q.appendleft(self.last_entry)
+        # self.Q.appendleft(self.a)
         print('Saving progress...')
-        with open('../data/resized/meta.txt','a') as f:
-            for i in range(self.df_out.shape[0]):
-                f.write(';'.join(self.df_out.iloc[i].values.astype('str'))+';\n')
+        # with open('../data/resized/meta.txt','a') as f:
+        #     for i in range(self.df_out.shape[0]):
+        #         f.write(';'.join(self.df_out.iloc[i].values.astype('str'))+';\n')
+        self.save_to_txt()
         print('Goodbye!')
         plt.close()
+
+    def save_to_txt(self):
+        print('Saving progress...')
+        with open('../data/processed/meta.txt','a') as f:
+            for i in range(self.df_out.shape[0]):
+                f.write(';'.join(self.df_out.iloc[i].values.astype('str'))+';\n')
 
     def watermark(self):
         #self.mask = np.zeros(self.b.shape[:2])
@@ -268,12 +283,17 @@ class imageCycle:
         dim = c.shape
         if dim[0] < dim[1]:
             h = dim[0]//4
-            print(dim,h)
-            self.test = c
+            #print(dim,h)
+            #self.test = c
             c[h:2*h] = c[:h]
             c[2*h:3*h] = c[3*h:4*h]
         else:
-            pass
+            h = dim[1]//4
+            #print(dim,h)
+            #self.test = c
+            c[:,h:2*h] = c[:,0:h]
+            c[:,2*h:3*h] = c[:,3*h:4*h]
+
 
         #c = img_as_float(c)
         #c = np.dstack([filters.median(c[:,:,i],disk(10)) for i in range(3)])
@@ -311,12 +331,13 @@ class imageCycle:
 
 
     def save_cont_fine(self):
+        self.inc += 1
         self.df_out.loc[self.inc_t] = self.im_row
         self.pad_img()
-        print('skipping resize for now...')
+        print('No resize for now...')
         #print('resizing image...')
         #self.b = rescale(self.b,self.imsize/self.b.shape[0])
-        im_path = self.a.replace('troutnut','processed').replace('bug_guide','processed')
+        im_path = self.a.replace('troutnut','processed_2').replace('bug_guide','processed_2')
         print(im_path)
         imsave(im_path, self.b)
         print('saved.')
@@ -365,14 +386,19 @@ class imageCycle:
 
     def next_image(self):
         print('entering next_image()')
+        if self.inc_t >= (self.df.shape[0] - 1):
+            print('Finished current queue.')
+            print('Saving and quitting')
+            self.save_quit_fine()
         # if this doesn't work, we'll try clf
         self.ax.cla()
         #self.a = self.Q.pop()
         self.a = self.df.file_path.loc[self.inc_t]
         self.b = imread(self.a)
         self.ax.imshow(self.b)
-        self.ax.set_title('Saved Images: {}'.format(self.inc))
-        self.ax.set_xlabel(str(self.inc_t)+'images so far')
+        self.ax.set_title(self.a[18:]+': Saved Images: {}'.format(self.inc))
+        self.ay.set_title(str(self.inc_t)+'images out of'+str(self.df.shape[0])+'so far')
+        #self.ax.set_xlabel(str(self.inc_t)+'images so far')
         self.ax.figure.canvas.draw()
         self.inc_t += 1
         return
