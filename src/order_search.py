@@ -150,22 +150,31 @@ sub_set = ['ephemeroptera','trichoptera','plecoptera','diptera']
 # ephem_bug.set_index('index', inplace=True)
 # [ephem_bug.drop(i, inplace=True) for i in c]
 
+# df_trout = df_from_meta('troutnut')
+# tric_trout = df_trout.loc[np.where(df_trout.order == 'Trichoptera (Caddisflies)')[0]]
+# tric_trout.file_path = tric_trout.file_path + '.jpg'
+
+# df_trout = df_from_meta('troutnut')
+# dipt_trout = df_trout.loc[np.where(df_trout.order == 'Diptera (True Flies)')[0]]
+# dipt_trout.file_path = dipt_trout.file_path + '.jpg'
+
 df_trout = df_from_meta('troutnut')
-plec_trout = df_trout.loc[np.where(df_trout.order == 'Plecoptera (Stoneflies)')[0]]
+ephem_trout = df_trout.loc[np.where(df_trout.order == 'Ephemeroptera (Mayflies)')[0]]
+ephem_trout.file_path = ephem_trout.file_path + '.jpg'
 
-# fig = plt.figure(figsize=(10,5))
-# ax = fig.add_subplot(121)
-# ay = fig.add_subplot(122)
-# imc = imageCycle([ax,ay],ephem_bug)
-# plt.show()
+fig = plt.figure(figsize=(10,5))
+ax = fig.add_subplot(121)
+ay = fig.add_subplot(122)
+imc = imageCycle([ax,ay],ephem_trout)
+plt.show()
 
 
 
-
+# 4046
 # imc = imageCycle([ax,ay],df)
 # plt.show()
 
-# drop 50,
+# drop 50,cd
 # plecoptera_df = df.loc[np.where(df.order == 'Plecoptera (Stoneflies)')[0]]
 # ephem_bug['index'] = np.arange(ephem_bug.shape[0])
 # ephem_bug.set_index('index', inplace=True)

@@ -103,6 +103,7 @@ class imageCycle:
     # list of metadata that we can to decide which images we'll
     # feed our model as we become better at image processing
     # (I'll come back to this once I have an MVP)
+
     def fine_sort(self, event):
         print('entering fine_sort()')
         if event.button == 1:
@@ -154,6 +155,7 @@ class imageCycle:
                     self.watermark()
                 elif 390<event.y<548:
                     # Ruler
+                    # for bugguide, I used this for trichoptera cases
                     print('adding "ruler" attribute')
                     self.im_row[4] = 1
                 elif 238<event.y<385:
@@ -179,6 +181,9 @@ class imageCycle:
                     self.im_row[8] = 1
                 elif 238<event.y<385:
                     # Multiple/other
+                    # most important note is that I used this for
+                    # adult specimens (not for the first few, however, should
+                    # fix that)
                     print('adding "Multiple/other" attribute')
                     self.im_row[6] = 1
                 elif 110<event.y<225:
@@ -215,13 +220,17 @@ class imageCycle:
                     # Noisy Background
                     self.im_row[8] = 1
                 elif 238<event.y<385:
-                    # Multiple/Other
-                    self.im_row[6] = 1
+                    #######################################
+                    # Patrial view - but possibly useable#
+                    ######################################
+                    print("OTHER")
+                    self.im_row[9] = 1
                 elif 110<event.y<225:
                     # Quit
                     self.save_quit_fine()
                 else:
                     return
+            self.im_row[0] = self.a
             self.save_cont_fine()
         self.last_entry = self.a
         return
@@ -266,7 +275,7 @@ class imageCycle:
 
     def save_to_txt(self):
         print('Saving progress...')
-        with open('../data/processed/meta.txt','a') as f:
+        with open('../data/processed_2/meta.txt','a') as f:
             for i in range(self.df_out.shape[0]):
                 f.write(';'.join(self.df_out.iloc[i].values.astype('str'))+';\n')
 
@@ -337,7 +346,7 @@ class imageCycle:
         print('No resize for now...')
         #print('resizing image...')
         #self.b = rescale(self.b,self.imsize/self.b.shape[0])
-        im_path = self.a.replace('troutnut','processed_2').replace('bug_guide','processed_2')
+        im_path = '../data/processed_2/{}'.format(self.a.split('/')[4])
         print(im_path)
         imsave(im_path, self.b)
         print('saved.')
