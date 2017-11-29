@@ -9,58 +9,41 @@ import time
 import pickle
 from skimage.io import imread, imsave
 
-# This webscraper is custom built to collect images from troutnut.com
+# This webscraper is custom built to collect images from bugguide.net
 # It proceeds through the following steps:
-#       1. The URLs for the pages I'm interested in are all
-#          formatted as "http://www.troutnut.com/hatch/"+ a
-#          number specific to the order of insect/ + the order of
-#          insect/ + the page number + "#specimens"
-#          i.e. -
-#          http://www.troutnut.com/hatch/13/Insect-Plecoptera-Stoneflies
-#          I have the numbers and orders stored in a json file, these
-#          are read in.
-#       2. I create a deque to store the urls I'll be grabbing on my
-#          first pass. Troutnut has a forum setup. With the URL I created
-#          above, I'll be directed to the first page of that insect order's
-#          sub-forum. Each page of that sub-forum has 10 topics - each
-#          corresponding to a different specimen. I go through the
-#          pages for each sub-forum, and collect the URLs for the specimen
-#          pages, appending them to the deque.
+#       1. I grab a url and the path to a directory from a list. The url
+#          corresponds to an order of insect, and the path is the folder
+#          where I want to save the images and metainformation for that order.
+#       2. I visit the first url, find the links that I'm interested in (the
+#          ones that lead to family, genus, or species pages for the insect 
+#          order we're working on), and appends them to a queue.
 #       3. Once these have been collected, I go through the deque and visit
 #          each of the urls in turn. I identify the images, collect the meta
 #          data for each specimen, and store both image and metadata in a
 #          directory specific to the order of the insect.
+#       4. This is repeated for the next url and directory in the list.
 
 class imageScraper():
 
     def __init__(self):
-        # read in the url data we'll need later (the formatting of
-        # the url for each order we're interested in), and create a
-        # deque for storing the urls for specimen pages.
-        #self.data_setup()
+    # read in the url data we'll need later (the formatting of
+    # the url for each order we're interested in), and create a
+    # deque for storing the urls for specimen pages.
+    #self.data_setup()
         self.Q = deque()
         self.imgQ = deque()
         self.u_start = 'https://bugguide.net/'
 
-    # This appends the urls for the specimen pages to our queue.
-    def pg_urls(self):
-        p = self.html.find_all('a', attrs={'class':'bb_url'})
-        for i in p:
-            new_url = i.attrs['href']
-            if new_url not in self.Q:
-                self.Q.append(new_url)
-            else:
-                pass
 
-    # this looks at the current page, finds the highest page in the
-    # forum from a navigation bar at the bottom, and calls pg_urls
-    def page_scan(self):
-        req = requests.get(self.url)
-        self.html = BeautifulSoup(req.content,'html.parser')
-        self.pg_urls()
+    # This is the function we call during our first pass through the
+    # website. It goes through u_list - which contains the urls for the
+    # pages detailing the orders we're interested in. Each of these pages
+    # contain urls leading to more pages (for family, genus, species, etc.),
+    # and we add these to our queue with page_scan(). We'll go through these
+    # and collect more urls - and then images - by calling scrape().
 
-    # This is the function that you call for a first pass through the
-    # website. It takes the information from the urlinfo.json file and
+
+    #It takes the information from the urlinfo.json file and
     # uses them to build the 10 urls for the sub-forums on troutnut.
     # It goes through the pages of that subforum until it reaches
     # the max page, and then it moves on to the next sub-forum.
@@ -74,11 +57,25 @@ class imageScraper():
             self.page_scan()
             self.scrape()
 
-    # This is to be run after iter_order()
-    # This goes through the queue that we built in inter_order(),
-    # grabs the images from each page, grabs the metadata from each
-    # page and for each specimen, and saves both the images and the
-    # metadata to a directory specified in urlinfo.json
+    # this creates a BeautifulSoup object and then calls pg_urls, which
+    # will go through it and append the urls we're interested in to our queue.
+    def page_scan(self):
+        req = requests.get(self.url)
+        self.html = BeautifulSoup(req.content,'html.parser')
+        self.pg_urls()
+
+    def pg_urls(self):
+        p = self.html.find_all('a', attrs={'class':'bb_url'})
+        for i in p:
+            new_url = i.attrs['href']
+            if new_url not in self.Q:
+                self.Q.append(new_url)
+            else:
+                pass
+
+    # This function will call grab_source(), which collects the urls for
+    # the actual image files and appends them to a separate queue, and
+    # grab_images(), which saves the images.
 
     def scrape(self):
         print('Image queue loaded...')
@@ -86,7 +83,10 @@ class imageScraper():
             print('Grabbing images...')
             self.grab_source()
             self.grab_images()
-            time.sleep(3)
+
+    # For each of the urls attached to the queue in pg_urls(), this
+    # function collects the urls of the image files and appends them
+    # to a second queue called imgQ
 
     def grab_source(self):
         self.url = self.u_start + self.Q.popleft()
@@ -97,11 +97,14 @@ class imageScraper():
             if i not in self.imgQ:
                 self.imgQ.append(i.parent.attrs['href'])
 
-    # this is misleadingly named - it grabs the images and the metadata
-    # scrape will call this function until the queue is empty.
+    # For each of the urls attached to imgQ in grab_source(), this
+    # function saves the image to a directory specific to the order of
+    # insect it represents, and then calls get_meta(), which will write it to
+    # a meta information file
+
     def grab_images(self):
         while len(self.imgQ) > 0:
-            time.sleep(2)
+            time.sleep(3)
             img_url = self.imgQ.popleft()
             print('Fetching ',img_url)
             req = requests.get(img_url)
@@ -114,6 +117,16 @@ class imageScraper():
             img_fp = self.file_path + '/' + self.image_id
             imsave(img_fp,img_arr)
             self.get_meta(img_arr)
+
+    # We saved the BeutifulSoup object from grab_images() as self.html, so
+    # it's still accessible to this function. Here we're performign a few
+    # searches on it to pull useful information from the page we collected
+    # the image from:
+    # <div>class=bgimage-where-when  <- contains geographic/time information
+    # about the specimen.
+    # We also pull taxonomic information from the page, with as much
+    # resolution as is available.
+    # This is formatted and appended to a metadata file.
 
     def get_meta(self,img_arr):
             print('Collecting metadata')
@@ -150,48 +163,10 @@ class imageScraper():
             print('Metadata saved:',self.ml)
 
 
-#file_name;location;date_collected;size;order;family;genus;species;
-
-        # self.url = self.Q.popleft()
-        # req = requests.get(self.url)
-        # html = BeautifulSoup(req.content, 'html.parser')
-        # a = html.find_all('img', attrs={'class':'bgimage-thumb'})
-        # order_url = html.find_all('a', attrs={'itemprop':'url'})[3]['href']
-        # order_val = order_url.split('/')[5]
-        # t = html.find_all('span', attrs = {'itemprop':'title'})
-        # order_dir = self.data_dict[self.data_dict.orders == order_val].directory.values[0]
-        # print('Found images in',order_url)
-        # meta_info = []
-        # for i in range(len(a)):
-        #     b = a[i]
-        #     src = b.attrs['src']
-        #     c = [b.attrs['name'],b.attrs['title'],b.attrs['alt'],src]
-        #     taxo = [x.get_text() for x in t[3:]]
-        #     d = ';'.join(c+taxo+['\n'])
-        #     meta_info.append(d)
-        #     img_arr = imread(requests.get(src, stream=True).raw)
-        #     imsave("../data/troutnut/{}/{}.jpg".format(order_dir,a[i]['name']), img_arr)
-        # print(len(a), "images saved successfully")
-        # with open("../data/troutnut/{}/meta.txt".format(order_dir),"a") as f:
-        #     for i in range(len(meta_info)):
-        #         #f.write(image_name[i]+','+source_info[i]+','+source_info[i]+','+source_info_alt+','+image_url[i])
-        #         f.write(meta_info[i])
-        # print('Updated metadata.')
-        # print('Updated queue')
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-# #
+#

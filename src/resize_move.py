@@ -104,18 +104,18 @@ for i in meld_df.order:
 meld_df.order = order_list
 
 
-# for i in meld_df.file_path:
-#
-#     a = i.split('/')
-#     d = '../data/resized/{}'.format(a[4])
-#     del a[3]
-#     a = '/'.join(a).replace('bug_guide','processed').replace('troutnut','processed_2')
-#     b = imread(a)
-#     c = resize(b,(224,224))
-#     imsave(d,c)
-# with open('../data/resized/meta.txt','w') as f:
-#     for i in range(meld_df.shape[0]):
-#         f.write(';'.join(meld_df.iloc[i].values.astype('str'))+'\n')
+for i in meld_df.file_path:
+
+    a = i.split('/')
+    d = '../data/resized/{}'.format(a[4])
+    del a[3]
+    a = '/'.join(a).replace('bug_guide','processed').replace('troutnut','processed_2')
+    b = imread(a)
+    c = resize(b,(299,299))
+    imsave(d,c)
+with open('../data/resized/meta.txt','w') as f:
+    for i in range(meld_df.shape[0]):
+        f.write(';'.join(meld_df.iloc[i].values.astype('str'))+'\n')
 
 
 

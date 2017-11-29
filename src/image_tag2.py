@@ -13,12 +13,9 @@ from matplotlib.widgets import RectangleSelector
 from pylab import *
 import pickle
 import time
-import pdb
 
-#order_dict = {'Odonata-Anisoptera (Dragonflies)':'a_odonata'}
 
-# trying to make this flexible
-# I think that i'll have more options if I use a dataframe
+
 
 class imageCycle:
     def __init__(self,ax,df,sort_mode='fine',save_mode='resize',imsize=299):
@@ -221,7 +218,7 @@ class imageCycle:
                     self.im_row[8] = 1
                 elif 238<event.y<385:
                     #######################################
-                    # Patrial view - but possibly useable#
+                    # Partial view - but possibly useable#
                     ######################################
                     print("OTHER")
                     self.im_row[9] = 1
