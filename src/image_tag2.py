@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 from skimage import img_as_ubyte,img_as_float
 from skimage.io import imread, imsave, imshow
 from skimage.transform import resize, rescale
-from skimage.restoration import inpaint, wiener
 from skimage import filters
 from skimage.morphology import disk
 from matplotlib.patches import Rectangle
@@ -19,25 +18,20 @@ import time
 
 class imageCycle:
     def __init__(self,ax,df,sort_mode='fine',save_mode='resize',imsize=299):
-        #print('line 16')
-        #pdb.set_trace()
+
         if len(ax) == 2:
-            #print('line 18')
             self.ax = ax[0]
             self.ay = ax[1]
             self.cid = ax[0].figure.canvas.mpl_connect('button_press_event',self)
             self.cid2 = ax[1].figure.canvas.mpl_connect('button_press_event', self)
             self.display_flagscreen()
-
         else:
-            #print('line 24')
             self.ax = ax[0]
             self.cid = ax[0].figure.canvas.mpl_connect('button_press_event',self)
         self.last_entry = ''
         self.inc = 0
         self.inc_t = 0
         self.df = df
-        #self.Q = deque(df.file_path)
         self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
         self.set_index()
         self.next_image()
@@ -46,7 +40,7 @@ class imageCycle:
         self.imsize = imsize
         self.RS = RectangleSelector(self.ax, self.onselect,
                                drawtype='box', useblit=True,
-                               button=[1, 3],  # don't use middle button
+                               button=[1, 3],
                                minspanx=5, minspany=5,
                                spancoords='pixels',
                                interactive=True)
@@ -54,8 +48,8 @@ class imageCycle:
                 'multiple','contrast','noisy_background','other','choice_count']
         self.df_out = pd.DataFrame(columns = columns)
 
-    # this function is a bit tricky. It uses the mpl_connect module from
-    # matplotlib. In a nutshell, whenever there is a click on the screen
+    # this function uses the mpl_connect module from matplotlib. In a
+    # nutshell, whenever there is a click on the screen,
     # this function detects it, and the path to a picture is popped from
     # the queue.
     def __call__(self,event):
