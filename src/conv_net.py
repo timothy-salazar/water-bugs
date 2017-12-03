@@ -10,6 +10,7 @@ from keras.applications import vgg16
 from keras.preprocessing import image
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import np_utils
+from keras.callbacks import EarlyStopping
 from matplotlib import pyplot as plt
 from sklearn.metrics import classification_report
 import cv2
@@ -29,8 +30,8 @@ def build_model():
     vgg16 = vgg16.VGG16(weights='imagenet', include_top=False,
                         input_tensor=Input((224, 224, 3)))
     # I want to preserve the imagenet layers initially, otherwise my randomly
-    # initialized densly connected layers could cause problems. I freeze them
-    # here, and I will unfreeze them after a few epochs.
+    # initialized densly connected layers could cause problems, so I freeze
+    # them.
     for l in vgg16.layers:
         l.trainable = False
     # I want to pass the output from the imagenet-trained convolutional layers
@@ -41,7 +42,9 @@ def build_model():
     x = Dense(4096, activation='relu', name='fully_connected_1')(x)
     # Dropout - to help prevent overfitting
     x = Dropout(0.5)(x)
-    x = Dense(2048, activation='relu', name='fully_connected_2')(x)
+    x = Dense(4096, activation='relu', name='fully_connected_2')
+    x = Dropout(0.5)(x)
+    x = Dense(2048, activation='relu', name='fully_connected_3')(x)
     x = Dropout(0.5)(x)
     # This batch norbalization layer prevents something called covariate shift -
     # basically, for each batch we feed into this CNN, we're taking input
@@ -76,44 +79,63 @@ def run_model(model):
         target_size=(224, 224),
         batch_size=32,
         class_mode='categorical')
-    initialiation_datagen = ImageDataGenerator(
+    test_datagen = ImageDataGenerator(
             zoom_range=0.2,
             rotation_range=20,
             horizontal_flip=True,
             vertical_flip=True)
-    initialization_generator = test_datagen.flow_from_directory(
+    test_generator = test_datagen.flow_from_directory(
         '../data/test',
         target_size=(224,224),
         batch_size=32,
         class_mode='categorical')
+    early_stopping = EarlyStopping(monitor='val_acc', min_delta=0.01, patience=8, verbose=0, mode='auto')
     model.fit_generator(
-            initialization_generator,
-            steps_per_epoch=16,
-            epochs=15,
+            train_generator,
+            steps_per_epoch=108,
+            epochs=100,
             validation_data=validation_generator,
-            validation_steps=35,
-            use_multiprocessing=True)
-    model_weights = model.get_weights()
-    model_config = model.get_config()
-    model = Model.from_config(model_config)
-    model.set_weights(model_weights)
-    for l in model.layers:
-        l.trainable = True
-    model.compile(optimizer='adam', loss='categorical_crossentropy',
-                    metrics=['mae','accuracy'])
-    model.fit_generator(
-        train_generator,
-        steps_per_epoch=107,
-        epochs=30,
-        validation_data=validation_generator,
-        validation_steps=35,
-        use_multiprocessing=True)
+            validation_steps=36,
+            use_multiprocessing=True,
+            callbacks=[early_stopping])
+    '''
+    I played around with training my model on a smaller, initialization set
+    before setting the VGG16 layers as trainable, and fitting it to the
+    larger, full training set. This did not improve my results, however -
+    using the existing vgg16 layers as a feature extractor gave the best
+    results
+
+    # model_weights = model.get_weights()
+    # model_config = model.get_config()
+    # model = Model.from_config(model_config)
+    # model.set_weights(model_weights)
+    # for l in model.layers:
+    #     l.trainable = True
+    # model.compile(optimizer='adam', loss='categorical_crossentropy',
+    #                 metrics=['mae','accuracy'])
+    # model.fit_generator(
+    #     train_generator,
+    #     steps_per_epoch=107,
+    #     epochs=30,
+    #     validation_data=validation_generator,
+    #     validation_steps=35,
+    #     use_multiprocessing=True)
+    '''
     t = train_generator.class_indices
-    test_reoport(model,t)
+    test_report(model,t)
     print(model.evaluate_generator(validation_generator))
-    return model
 
 def test_report(model,t):
+    # Input: our trained model, and the dictionary returned by the
+    # class_indices method of any of our generators (we will get the same
+    # result for any of them, since the classes are assigned indexes in
+    # alphabetical order)
+
+    # This function reads the meta-information about the images stored
+    # in the 'validation' directory. It then reads the images in, resizes
+    # them to the 224X224 that this model takes as an input. It calls the
+    # 'predict' method on our model, and then feeds the predicted labels
+    # and actual labels to classification_report().
     df = pd.read_csv('../data/validation/xy.txt')
     y_cat = []
     iml = []
@@ -125,8 +147,6 @@ def test_report(model,t):
         iml.append(cv2.resize(cv2.imread(i_path,1),(224,224),interpolation = cv2.INTER_AREA))
         y_cat.append(o)
     iml = np.stack(iml)
-    test_datagen = ImageDataGenerator()
-    test_generator = test_datagen.flow(iml,y_cat, batch_size=32)
     pred = model.predict(iml)
     inv_map = {v: k for k, v in t.items()}
     y_pred = [inv_map[np.argmax(i)] for i in pred]
@@ -136,6 +156,10 @@ def test_report(model,t):
     print(c_str)
 
 def save_weights(model,c_str):
+    # this will save the weights for my model in a hdf5 file.
+    # The file ends with the date and time, and records this file name
+    # along with the performance metrics from the SKlearn Classification
+    # Report, in a metainformation file called 'meta.txt'
     now = datetime.datetime.now()
     n = now.strftime("%m%d_%H-%M")
     p = '../data/model_weights/weights_{}.h5'.format(n)
@@ -145,7 +169,7 @@ def save_weights(model,c_str):
 
 if __name__ == '__main__':
     model = build_model()
-    model = run_model(model)
+    run_model(model)
 
 
 
