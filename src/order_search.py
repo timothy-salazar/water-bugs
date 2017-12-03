@@ -11,69 +11,17 @@ import shutil
 import math
 import pickle
 
-def read_meta():
-    Q = []
-    data_dict = pd.read_json('urlinfo.json')
-    dirs = data_dict.directory.values
-    for d in dirs:
-        path_name = '../data/troutnut/{}/meta.txt'.format(d)
-        df = pd.read_csv(path_name, sep=';')
-        for f in df.file_name:
-            im_path = '../data/troutnut/{}/{}.jpg'.format(d,f)
-            Q.append(im_path)
-    return Q
-
-def read_from_txt():
-    Q = []
-    df = pd.read_csv('../data/txt_docs/first_pass.txt',sep=';')
-    for f in df.file_name:
-        Q.append(f)
-    return Q
-
-def shift_left():
-    Q = read_meta()
-    origQ = np.array(Q)
-    Q = read_from_txt()
-    Q.reverse()
-    copyQ = np.array(Q)
-    a = [np.where(origQ == i)[0][0] for i in copyQ]
-    b = [i - 1 for i in a]
-    Q = []
-    [Q.append(i) for i in origQ[b]]
-    return Q
-
-def build_dataframe():
-    data_dict = pd.read_json('urlinfo.json')
-    dirs = data_dict.directory.values
-    df = pd.DataFrame()
-    for d in dirs:
-        df = df.append(pd.read_csv('../data/troutnut/{}/meta.txt'.format(d),sep=';'))
-    df['index'] = np.arange(df.shape[0])
-    df.set_index('index', inplace=True)
-    return df
-
-def create_subset(sub_set):
-    Q = shift_left()
-    file_arr = np.array(Q)
-    a = [i.split('/')[3] in sub_set for i in file_arr]
-    b = file_arr[a]
-    df = build_dataframe()
-    df_index = np.array([np.where(df.file_name ==
-                i.split('/')[4].split('.')[0])[0][0] for i in b])
-    #df2 = [df.iloc[i.split('/')[4].split('.')[0]].values for i in b]
-    df2 = pd.DataFrame([df.loc[i] for i in df_index])
-    df2['file_path'] = b
-    df2['index'] = np.arange(df2.shape[0])
-    df2.set_index('index', inplace=True)
-    return df2
 
 def df_from_meta(col):
+    # this creates an entirely new dataframe containing only plecoptera,
+    # trichoptera, diptera, and ephemeroptera.
+    # It goes into the directories containing these images and
+    # reads their metainformation, including the file name and location,
+    # taxonomic information, and other details collected by my web scraper
     dirs=['plecoptera',
             'trichoptera',
             'diptera',
             'ephemeroptera']
-    # columns = ['file_name','location','date_collected','size',
-    #             'order','family','genus', 'species']
     df = pd.DataFrame()
     f_list = []
     for d in dirs:
@@ -88,6 +36,8 @@ def df_from_meta(col):
     return df
 
 def unpickle_dfs(dfs):
+    # This is not used in my final product. I needed to be able to pickle
+    # and unpickle dataframes during the trial and error phase of production.
     dfs = ['pickle/plecoptera_df.pkl','pickle/trichoptera_df.pkl',
             'pickle/diptera_df.pkl','pickle/ephemeroptera_df.pkl']
     df_list = []
@@ -97,89 +47,98 @@ def unpickle_dfs(dfs):
     return df_list
 
 def split_dfs(df_list):
+    # Input:
+    # A list of dataframes
+    # Output:
+    # A list of train_test_splits
     return [train_test_split(df.file_path) for df in df_list]
 
-# def resize_save(x_split,x_set,dir,out_dict):
-#     for val, file_path in enumerate(x_split):
-#         a = imread(file_path)
-#         b = resize(a,(299,299))
-#         c = '../data/{}/{}/{}.jpg'.format(x_set,d,str(val).zfill(3))
-#         imsave(c,b)
-#         out_dict[file_path] = c
-#     return out_dict
-
-def split_process(split_df_list):
-    dir_list = ['plecoptera','trichoptera','diptera','ephemeroptera']
-    out_dict = dict()
-    for i,d in zip(np.array(split_df_list),dir_list):
-        xtrain = i[0]
-        xtest = i[1]
-        out_dict = resize_save(xtrain,'train',d,out_dict)
-        out_dict = resize_save(xtest,'test',d,out_dict)
-    return out_dict
-
-def image_preprocess(df):
-    df_list = unpickle_dfs()
-    tts = split_dfs(df_list)
-    out_dict = split_process(tts)
-    df['sub_file_path'] = [out_dict[df.file_path[i]] for i in range(len(df))]
-    return df
-
 def run_imc(df):
+    # This creates an imageCycle object and begins the
+    # process by which I can go through and sort the images,
+    # remove watermarks, and apply image preprocessing.
     fig = plt.figure(figsize=(10,5))
     ax = fig.add_subplot(121)
     ay = fig.add_subplot(122)
     imc = imageCycle([ax,ay],df)
     plt.show()
 
+def set_index(df):
+    # sets the index of a dataframe to be 0-max
+    df['index'] = np.arange(df.shape[0])
+    df.set_index('index', inplace=True)
+    return df
+
+def bug_guide_sort(user_input):
+    # This lets the user choose which order within the bug_guide
+    # corpus they would like to begin sorting. It then builds the appropriate
+    # dataframe and calls run_imc()
+    sub_set = ['ephemeroptera','trichoptera','plecoptera','diptera']
+    df_bug = bugguide()
+    if user_input == 'p':
+        df = df_bug.loc[np.where(df_bug.order == 'Stoneflies (Plecoptera)')[0]]
+    elif user_input == 't':
+        df = df_bug.loc[np.where(df_bug.order == 'Caddisflies (Trichoptera)')[0]]
+    elif user_input == 'd':
+        df = df_bug.loc[np.where(df_bug.order == 'Flies (Diptera)')[0]]
+    elif user_input == 'e':
+        df = df_bug.loc[np.where(df_bug.order == 'Mayflies (Ephemeroptera)')[0]]
+    else:
+        print('Invalid key.')
+    df = set_index(df)
+    a = np.unique(df.file_name, return_counts = True)
+    multi_vals = a[0][np.where(a[1]>1)]
+    c = [np.where(ephem_bug.file_name == i)[0] for i in multi_vals]
+    [ephem_bug.drop(i, inplace=True) for i in c]
+    df = df.set_index
+    run_imc(df)
+
+def trout_sort(user_input):
+    # This lets the user choose which order within the troutnut
+    # corpus they would like to begin sorting. It then builds the appropriate
+    # dataframe and calls run_imc()
+    df_trout = df_from_meta('troutnut')
+    if user_input == 'p':
+        df = df_trout.loc[np.where(df_trout.order == 'Trichoptera (Caddisflies)')[0]]
+        df.file_path = tric_trout.file_path + '.jpg'
+    elif user_input == 't':
+        df = df_trout.loc[np.where(df_trout.order == 'Trichoptera (Caddisflies)')[0]]
+        df.file_path = tric_trout.file_path + '.jpg'
+    elif user_input == 'd':
+        df = df_trout.loc[np.where(df_trout.order == 'Diptera (True Flies)')[0]]
+        df.file_path = dipt_trout.file_path + '.jpg'
+    elif user_input == 'e':
+        df = df_trout.loc[np.where(df_trout.order == 'Ephemeroptera (Mayflies)')[0]]
+        df.file_path = ephem_trout.file_path + '.jpg'
+    else:
+        print('invalid key.')
+    run_imc(df)
 
 
-sub_set = ['ephemeroptera','trichoptera','plecoptera','diptera']
-# df = create_subset(sub_set)
-#
+def main():
+    # This is just a menu to make things a bit neater.
+    print('Press 1 for Troutnut, 2 for Bug Guide')
+    user_inuput = input('-->')
+    if user_input == 1:
+        print('press "p" for Plecoptera')
+        print('press "t" for Trichoptera')
+        print('press "d" for Diptera')
+        print('press "e" for Ephemeroptera')
+        user_input = input('-->')
+        trout_sort(user_input)
+    if user_input == 2:
+        print('press "p" for Plecoptera')
+        print('press "t" for Trichoptera')
+        print('press "d" for Diptera')
+        print('press "e" for Ephemeroptera')
+        user_input = input('-->')
+        bug_guide_sort(user_input)
+    else:
+        print('Invalid key.')
 
-#df_bug = bugguide()
-#plec_bug = df_bug.loc[np.where(df_bug.order == 'Stoneflies (Plecoptera)')[0]]
-#tric_bug = df_bug.loc[np.where(df_bug.order == 'Caddisflies (Trichoptera)')[0]]
-#dipt_bug = df_bug.loc[np.where(df_bug.order == 'Flies (Diptera)')[0]]
-#ephem_bug = df_bug.loc[np.where(df_bug.order == 'Mayflies (Ephemeroptera)')[0]]
-# a = np.unique(ephem_bug.file_name, return_counts = True)
-# multi_vals = a[0][np.where(a[1]>1)]
-# c = [np.where(ephem_bug.file_name == i)[0] for i in multi_vals]
-# ephem_bug['index'] = np.arange(ephem_bug.shape[0])
-# ephem_bug.set_index('index', inplace=True)
-# [ephem_bug.drop(i, inplace=True) for i in c]
+if __name__ == '__main__':
+    main()
 
-# df_trout = df_from_meta('troutnut')
-# tric_trout = df_trout.loc[np.where(df_trout.order == 'Trichoptera (Caddisflies)')[0]]
-# tric_trout.file_path = tric_trout.file_path + '.jpg'
-
-# df_trout = df_from_meta('troutnut')
-# dipt_trout = df_trout.loc[np.where(df_trout.order == 'Diptera (True Flies)')[0]]
-# dipt_trout.file_path = dipt_trout.file_path + '.jpg'
-
-df_trout = df_from_meta('troutnut')
-ephem_trout = df_trout.loc[np.where(df_trout.order == 'Ephemeroptera (Mayflies)')[0]]
-ephem_trout.file_path = ephem_trout.file_path + '.jpg'
-
-fig = plt.figure(figsize=(10,5))
-ax = fig.add_subplot(121)
-ay = fig.add_subplot(122)
-imc = imageCycle([ax,ay],ephem_trout)
-plt.show()
-
-
-
-# 4046
-# imc = imageCycle([ax,ay],df)
-# plt.show()
-
-# drop 50,cd
-# plecoptera_df = df.loc[np.where(df.order == 'Plecoptera (Stoneflies)')[0]]
-# ephem_bug['index'] = np.arange(ephem_bug.shape[0])
-# ephem_bug.set_index('index', inplace=True)
-
-# #
 
 
 
