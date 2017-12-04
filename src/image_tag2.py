@@ -124,7 +124,10 @@ class imageCycle:
     def fine_sort(self, event):
         print('entering fine_sort()')
         if event.button == 1:
-            #self.pause = True
+        # These values were found by clicking on the image and reading the
+        # x,y information from the click event. This takes the x and y
+        # information from a new click, and figures out which part of the
+        # 'flag screen' image the user has clicked.
             if 1100<event.x<1440:
                 #Column 1: save, skip, back one
                 if 558<event.y<856:
