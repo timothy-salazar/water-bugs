@@ -15,10 +15,33 @@ import time
 
 
 
+# The imageCycle() class object takes in a list of axis objects, a dataframe
+# and some additional, optional arguments.
+# It then connects to each of the axis objects using the mpl_connect() function
+# detailed here: https://matplotlib.org/users/event_handling.html
+# This passes button press events to the __call__() method when a mouse
+# is clicked within an axis.
+#
+# Coarse Sort:
+# This is a bare-bones method of sorting which I used for a first pass through
+# the information. This mode requires a single axis object which it uses to
+# display the images stored in a directory. A left click includes the image,
+# and a right click discards the image.
+#
+# Fine Sort:
+# This lets the user interact with a menu to either discard tag an image with
+# any of 9 tags describing the image, crop the image by dragging a rectangular
+# selector across the desired area, and remove watermarks by selecting the
+# watermarked area with a rectangular selector. The images are then padded to
+# a square shape, which prevents them from being warped when they are read
+# in by Keras' image preprocessing function. They are saved along with the
+# information from the tags in a separate directory.
+#
+
+
 
 class imageCycle:
     def __init__(self,ax,df,sort_mode='fine',save_mode='resize',imsize=299):
-
         if len(ax) == 2:
             self.ax = ax[0]
             self.ay = ax[1]
@@ -49,13 +72,12 @@ class imageCycle:
         self.df_out = pd.DataFrame(columns = columns)
 
     # this function uses the mpl_connect module from matplotlib. In a
-    # nutshell, whenever there is a click on the screen,
-    # this function detects it, and the path to a picture is popped from
-    # the queue.
+    # nutshell, whenever there is a click on the screen, this function detects
+    # it. If it is within the axes, the event object is passed to either
+    # fine_sort() or coarse_sort(), depending on the mode the imageCycle()
+    # obect was initialized with.
     def __call__(self,event):
-        #print('line 45')
         print('click', event)
-        # note to self: change this to deal with both axis objects
         if event.inaxes==self.ax.axes:
             print('within ax axes')
             if self.sort_mode == 'fine':
@@ -66,6 +88,8 @@ class imageCycle:
             print('within ay axes')
             self.fine_sort(event)
 
+    # This allows a program to pass the object another dataframe
+    # and reset the counts.
     def accept_df(self,df):
         self.df = df
         self.inc_t = 0
@@ -74,7 +98,10 @@ class imageCycle:
             self.inc = 0
 
     def coarse_sort(self, event):
-        #print('line 53')
+        # This uses a deque to go through the items in the
+        # dataframe. The user can choose to include or not include
+        # images in the sorted imageset by either left or right clicking.
+        # Doubleclick exits.
         if len(self.Q) == 0:
             print('Queue is empty, quitting...')
             self.save_quit()
@@ -90,11 +117,10 @@ class imageCycle:
         self.last_entry = self.a
         self.next_image()
         return
+
     # This function sorts using the flag screen - building up a
     # list of metadata that we can to decide which images we'll
     # feed our model as we become better at image processing
-    # (I'll come back to this once I have an MVP)
-
     def fine_sort(self, event):
         print('entering fine_sort()')
         if event.button == 1:
@@ -131,9 +157,6 @@ class imageCycle:
                     self.back_one()
                 elif 110<event.y<225:
                     # Quit
-                    self.save_quit_fine()
-            # columns=['file_name','ready','back_view','side_view','ruler','hand_nature',
-            #         'multiple','contrast','noisy_background','other','choice_count']
             elif 1448<event.x<1619:
                 # column 2: back view, crop, ruler, hand/nature
                 if 709<event.y<856:
@@ -227,26 +250,35 @@ class imageCycle:
         return
 
     def set_index(self):
-        #print('line 36')
+        # This just sets the index of the dataframe to be 0 to (length of
+        # the dataframe). It makes things tidier.
         self.df['index'] = np.arange(self.df.shape[0])
         self.df.set_index('index', inplace=True)
 
     def onselect(self, eclick, erelease):
+        # I don't need to print this data to the screen, but it doesn't hurt
+        # anything, and sometimes it's useful to see what's going on
+        # under the hood.
         'eclick and erelease are matplotlib events at press and release'
         print(' startposition : (%f, %f)' % (eclick.xdata, eclick.ydata))
         print(' endposition   : (%f, %f)' % (erelease.xdata, erelease.ydata))
         print(' used button   : ', eclick.button)
-        self.x1, self.x2 = int(min(eclick.xdata, erelease.xdata)),int(max(eclick.xdata, erelease.xdata))
-        self.y1, self.y2 = int(min(eclick.ydata, erelease.ydata)),int(max(eclick.ydata, erelease.ydata))
-        # self.xdata1, self.ydata1 = eclick.xdata, eclick.ydata
-        # self.xdata2, self.ydata2 = erelease.xdata, erelease.ydata
-    # this displays the flag screen
+        # Here I am taking the x and y data from the 'click' and 'release'
+        # events, sorting them, and putting them into objects I can
+        # access elsewhere.
+        self.x1, self.x2 = int(min(eclick.xdata, erelease.xdata)),
+                                int(max(eclick.xdata, erelease.xdata))
+        self.y1, self.y2 = int(min(eclick.ydata, erelease.ydata)),
+                                int(max(eclick.ydata, erelease.ydata))
+
     def display_flagscreen(self):
+        # this displays the flag screen
         flag_screen = imread('program_docs/flag_screen.png')
         self.ay.imshow(flag_screen)
         return
 
     def save_quit(self):
+        # For the coarse sort - saves and quits.
         self.Q.appendleft(self.last_entry)
         self.Q.appendleft(self.a)
         print('Saving progress...')
@@ -254,72 +286,62 @@ class imageCycle:
         plt.close()
 
     def save_quit_fine(self):
-        # self.Q.appendleft(self.last_entry)
-        # self.Q.appendleft(self.a)
+        # For the fine_sort mode. Saves the data and closes the program.
         print('Saving progress...')
-        # with open('../data/resized/meta.txt','a') as f:
-        #     for i in range(self.df_out.shape[0]):
-        #         f.write(';'.join(self.df_out.iloc[i].values.astype('str'))+';\n')
         self.save_to_txt()
         print('Goodbye!')
         plt.close()
 
     def save_to_txt(self):
+        # For the fine_sort mode. This saves the data to a text file called
+        # meta.txt, including all the tags the user created.
         print('Saving progress...')
         with open('../data/processed_2/meta.txt','a') as f:
             for i in range(self.df_out.shape[0]):
                 f.write(';'.join(self.df_out.iloc[i].values.astype('str'))+';\n')
 
     def watermark(self):
-        #self.mask = np.zeros(self.b.shape[:2])
-        #self.mask[self.y1:self.y2, self.x1:self.x2] = 1
-        # for layer in range(self.b.shape[-1]):
-        #     self.b[np.where(self.mask)] = 0
-        #self.ax.imshow(self.b)
-        #self.ax.figure.canvas.draw()
-        #time.sleep(3)
+        # This was a lot of trial and error, but I finally found a combination
+        # of techniques that is both effective at removing watermarks, and
+        # which doesn't take too much time (I have to sort through several
+        # thousand of these, after all)
         psf = np.ones((5, 5)) / 25
         c = self.b[self.y1:self.y2, self.x1:self.x2]
         dim = c.shape
+        # This mirrors the top quarter and bottom quarter of the selected
+        # rectangle over the middle half.
         if dim[0] < dim[1]:
             h = dim[0]//4
-            #print(dim,h)
-            #self.test = c
             c[h:2*h] = c[:h]
             c[2*h:3*h] = c[3*h:4*h]
         else:
             h = dim[1]//4
-            #print(dim,h)
-            #self.test = c
             c[:,h:2*h] = c[:,0:h]
             c[:,2*h:3*h] = c[:,3*h:4*h]
-
-
-        #c = img_as_float(c)
-        #c = np.dstack([filters.median(c[:,:,i],disk(10)) for i in range(3)])
-        # After playing around a bit, this seems to be the magic combo
+        # After playing around a bit, this seems to be the magic combo:
+        # I apply the median filter with a disk that's 10 across, over each
+        # channel of the rectangle. Then I apply a gaussian filter to the
+        # result.
         c = filters.gaussian(np.dstack([filters.median(c[:,:,i],disk(10)) for i in range(3)]),
                              sigma=5,multichannel=True)
-        #c = filters.gaussian(c, sigma=5, multichannel=True)
+        # I need to convert the array back to its original format, otherwise
+        # it won't fit back in the image properly.
         c = img_as_ubyte(c)
         self.b[self.y1:self.y2, self.x1:self.x2] = c
-        # this method was far too time intensive
-        #self.b = inpaint.inpaint_biharmonic(self.b, self.mask, multichannel=True)
         self.ax.imshow(self.b)
         self.ax.figure.canvas.draw()
 
 
     def get_rect(self):
+        # This crops the image to the rectangle selected by the user.
         print('entering get_rect()')
-        # x1, x2 = int(min(self.xdata1, self.xdata2)),int(max(self.xdata1, self.xdata2))
-        # y1, y2 = int(min(self.ydata1, self.ydata2)),int(max(self.ydata1, self.ydata2))
         self.b = self.b[self.y1:self.y2,self.x1:self.x2]
         self.ax.imshow(self.b)
         self.ax.figure.canvas.draw()
         return
 
-
     def pad_img(self):
+        # This pads the image to a square.
         dim = self.b.shape
         pad_amt = abs(dim[0] - dim[1])//2
         pad_axis = 0 if dim[0] < dim[1] else 1
@@ -331,9 +353,13 @@ class imageCycle:
 
 
     def save_cont_fine(self):
+        # This saves the image, along with the metadata provided by the
+        # user.
         self.inc += 1
         self.df_out.loc[self.inc_t] = self.im_row
         self.pad_img()
+        # I decided to resize the images in Keras instead, to give myself
+        # some flexability down the line.
         print('No resize for now...')
         #print('resizing image...')
         #self.b = rescale(self.b,self.imsize/self.b.shape[0])
@@ -344,44 +370,8 @@ class imageCycle:
         self.next_image()
         self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
 
-
-        # print('entering save_cont_fine()')
-        # self.df_out.loc[self.inc_t] = self.im_row
-        # #self.pause = False
-        # #if self.save_mode == 'resize':
-        # print('resizing image...')
-        # # self.pad_img()
-        # dim = self.b.shape
-        # print('dimensions of b:',dim)
-        # pad_amt = abs(dim[0] - dim[1])//2
-        # print('pad_amt:',pad_amt)
-        # pad_axis = 0 if dim[0] < dim[1] else 1
-        # print('pad axis:', pad_axis)
-        # pad_arr = np.zeros((pad_amt,dim[0**pad_axis],3),dtype = uint8)
-        # print('shape pad_arr:',shape(pad_arr))
-        # c = self.b.copy()
-        #
-        # b_pad = np.concatenate((pad_arr,c), axis = pad_axis)
-        # b_pad = np.concatenate((b_pad,pad_arr), axis = pad_axis)
-        # print('shape b_pad:',b_pad.shape)
-        # im_path = self.a.replace('troutnut','resized').replace('bug_guide','resized')
-        # print(im_path)
-        #self.c = self.b
-        # d = resize(b_pad,self.imsize)
-        # print('shape d:',d.shape)
-        # imsave(im_path, d)
-        # print('saved.')
-        # self.next_image()
-        # self.im_row = [0,0,0,0,0,0,0,0,0,0,0]
-        # return
-
     def skip(self):
         print('entering skip()')
-        # if self.save_mode != resize:
-        #     skip_ind = np.where(self.df.file_path == self.a)[0][0]
-        #     self.df.drop(skip_ind)
-        # else:
-        #     pass
         return
 
     def next_image(self):
@@ -390,25 +380,26 @@ class imageCycle:
             print('Finished current queue.')
             print('Saving and quitting')
             self.save_quit_fine()
-        # if this doesn't work, we'll try clf
+        # Important! If the axis isn't cleared, MatPlotLib will keep
+        # the images it's drawn in memory, and the program will slow down
+        # to a crawl. This prevents that.
         self.ax.cla()
-        #self.a = self.Q.pop()
+        # Reads and displays the next image in the dataframe.
         self.a = self.df.file_path.loc[self.inc_t]
         self.b = imread(self.a)
         self.ax.imshow(self.b)
+        # it's nice to have an idea of where you are.
         self.ax.set_title(self.a[18:]+': Saved Images: {}'.format(self.inc))
         self.ay.set_title(str(self.inc_t)+'images out of'+str(self.df.shape[0])+'so far')
-        #self.ax.set_xlabel(str(self.inc_t)+'images so far')
         self.ax.figure.canvas.draw()
         self.inc_t += 1
         return
 
     def back_one(self):
+        # Go back one image.
         print('entering back_one()')
         self.inc_t -= 2
         self.next_image()
-        # current = np.where(self.df.file_path == self.a)[0][0]
-        # self.Q.append(self.df.file_path.iloc[last])
         return
 
 

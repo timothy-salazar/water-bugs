@@ -41,9 +41,9 @@ def build_model():
     x = Flatten(input_shape=vgg16.output.shape)(vgg16.output)
     x = Dense(4096, activation='relu', name='fully_connected_1')(x)
     # Dropout - to help prevent overfitting
-    x = Dropout(0.5)(x)
+    x = Dropout(0.3)(x)
     x = Dense(4096, activation='relu', name='fully_connected_2')
-    x = Dropout(0.5)(x)
+    x = Dropout(0.4)(x)
     x = Dense(2048, activation='relu', name='fully_connected_3')(x)
     x = Dropout(0.5)(x)
     # This batch norbalization layer prevents something called covariate shift -
@@ -79,11 +79,7 @@ def run_model(model):
         target_size=(224, 224),
         batch_size=32,
         class_mode='categorical')
-    test_datagen = ImageDataGenerator(
-            zoom_range=0.2,
-            rotation_range=20,
-            horizontal_flip=True,
-            vertical_flip=True)
+    test_datagen = ImageDataGenerator()
     test_generator = test_datagen.flow_from_directory(
         '../data/test',
         target_size=(224,224),
@@ -92,10 +88,10 @@ def run_model(model):
     early_stopping = EarlyStopping(monitor='val_acc', min_delta=0.01, patience=8, verbose=0, mode='auto')
     model.fit_generator(
             train_generator,
-            steps_per_epoch=108,
+            steps_per_epoch=126,
             epochs=100,
             validation_data=validation_generator,
-            validation_steps=36,
+            validation_steps=32,
             use_multiprocessing=True,
             callbacks=[early_stopping])
     '''
