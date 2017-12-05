@@ -23,31 +23,28 @@ Where H’ is the diversity index value, Ni is the number of individuals belongi
 <img alt="Plecoptera" src="images/plecoptera_site_1.png" width=400>  
 <sub> Plecoptera collected from the Boulder Creek </sub>  
 
-To calculate a metric such as the Shannon-Wiener Index, we need to identify which benthic macroinvertebrates we've collected. That is easier said than done, however, as it requires a trained eye to pick out the details that distinguish them. It's time consuming to identify each specimen, and for someone with very little experience such as myself, it's difficult to resolve taxonomic detail at a level much deeper than order.  
+To calculate a metric such as the Shannon-Wiener Index, we need to identify which benthic macroinvertebrates we've collected. That is easier said than done, however, as it requires a trained eye to pick out the details that distinguish them. It's time consuming to identify each specimen, and for someone with very little experience such as myself, it's difficult to resolve taxonomic detail. 
 
-A tool that could identify benthic macroinvertebrates from images could save time and allow amateurs to participate more readily in the stewardship of our waterways. To this end, I intend to:
+A tool that could identify benthic macroinvertebrates from images could save time and allow amateurs to participate more readily in the stewardship of our waterways. I wanted to train a model that could accomplish this, and the obvious choice was a convolutional neural network. 
 
-1. Collect, label, and preprocess images of benthic macroinvertebrates I collected from the Boulder Creek, as well as images scrapped from the web.
-  - Find at least 30 additional images per day
-  - Label each image with as much taxonomic depth as is available
-      - this can be automated for some image sets (troutnet images, my webscraper collected metadata including taxonomy)
-      - Directory: file name: Order: Family: Genus: Species
-  - Preprocessing:
-      - These are coming from different sources, which might be a problem. If one website is weighted heavily towards  ephemeroptera (troutnet), I don't want my CNN to pick up on watermarks/characteristic style as a factor. 
-      - Image processing pipeline that includes:
-          - trimming images
-          - scale to same resolution
-          - etc.
-2. Some image sets (the troutnet image set, for example) have a lot of images that I can't use. 
-    - cull unuseable images
-        - close ups
-        - duplicates
-        - etc.
-3. Move processed images to S3 instance
-    - I will probably need to use AWS to train my CNN
-4. Take weights from a pre-trained model and load them into a convolutional neural network (this will save training time)
-5. Train a CNN to identify the images down to as fine a taxonomic resolution as is possible in the time I have.
+Training a CNN properly requires a staggering number of images. I used the [Requests](http://docs.python-requests.org/en/master/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) libraries to scrape 8,500 benthic macroinvertebrate images from the web. I then used a combination of [Scikit-Image](http://scikit-image.org/) and custom code to process the images I had scrapped - culling unuseable images, removing watermarks, and cropping. I also had to pad the images to make them square so that they would not be warped when they were read in by Keras.
 
+<img alt="Keras VGG 16" src="images/transfer_learning.jpg" width=400> 
+<sub> VGG-16 Model Architecture </sub> 
+
+There's no reason to reinvent the wheel for this sort of project. Training a CNN from scratch would take more images than I had access to, and there are already pre-trained neural networks easily available. The VGG-16 Model is available as a part of the Keras library, and it includes weights that have been trained on ImageNet - hundreds of thousands of images. By removing the fully connected layers at the bottom of the model, I was able to use remaining layers as a feature extractor. I added my own fully connected layers which received a 7 x 7 x 512 tensor - the VGG-16 representation of the data. 
+
+ # Results
+ 
+My results were encouraging. When I looked at the data at the order level, I had precision and recall of about .85, and an f1-score of .85.
+ 
+<img alt="Between Order Scores" src="images/between_order.png" width=400><img alt="Between Order Scores" src="images/order_results.png" width=400>  
+<sub> Between Order Precision, Recall, and F1-Score </sub>
+
+I had more ephemeroptera than any other order of macroinvertebrates. I looked at the 5 families that were most represented in my data, and was able to achieve a precision, recall and f1-score of .61. While this is less encouraging than the order-level results, I had far fewer images per class, and with more images I think that better results would be possible.
+
+<img alt="Between Order Scores" src="images/between_family.png" width=400><img alt="Between Family Scores" src="images/family_results.png" width=400>
+<sub> Between Family Precision, Recall, and F1-Score </sub>
 
 
 
