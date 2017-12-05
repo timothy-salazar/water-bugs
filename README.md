@@ -29,7 +29,7 @@ A tool that could identify benthic macroinvertebrates from images could save tim
 
 Training a CNN properly requires a staggering number of images. I used the [Requests](http://docs.python-requests.org/en/master/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) libraries to scrape 8,500 benthic macroinvertebrate images from the web. I then used a combination of [Scikit-Image](http://scikit-image.org/) and custom code to process the images I had scrapped - culling unuseable images, removing watermarks, and cropping. I also had to pad the images to make them square so that they would not be warped when they were read in by Keras.
 
-<img alt="Keras VGG 16" src="images/transfer_learning.jpg" width=400> 
+<img alt="Keras VGG 16" src="images/transfer-learning.jpg" width=400> 
 <sub> VGG-16 Model Architecture </sub> 
 
 There's no reason to reinvent the wheel for this sort of project. Training a CNN from scratch would take more images than I had access to, and there are already pre-trained neural networks easily available. The VGG-16 Model is available as a part of the Keras library, and it includes weights that have been trained on ImageNet - hundreds of thousands of images. By removing the fully connected layers at the bottom of the model, I was able to use remaining layers as a feature extractor. I added my own fully connected layers which received a 7 x 7 x 512 tensor - the VGG-16 representation of the data. 
