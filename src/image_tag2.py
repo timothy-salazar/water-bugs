@@ -262,6 +262,8 @@ class imageCycle:
         # I don't need to print this data to the screen, but it doesn't hurt
         # anything, and sometimes it's useful to see what's going on
         # under the hood.
+        # adapted from:
+        # https://matplotlib.org/examples/widgets/rectangle_selector.html
         'eclick and erelease are matplotlib events at press and release'
         print(' startposition : (%f, %f)' % (eclick.xdata, eclick.ydata))
         print(' endposition   : (%f, %f)' % (erelease.xdata, erelease.ydata))
