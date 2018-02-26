@@ -179,12 +179,16 @@ class imageScraper():
         for i in range(len(a)):
             b = a[i]
             src = b.attrs['src']
-            c = [b.attrs['name'],b.attrs['title'],b.attrs['alt'],src]
-            taxo = [x.get_text() for x in t[3:]]
-            d = ';'.join(c+taxo+['\n'])
-            meta_info.append(d)
-            img_arr = imread(requests.get(src, stream=True).raw)
-            imsave("../data/troutnut/{}/{}.jpg".format(order_dir,a[i]['name']), img_arr)
+            sub_source = src.split('/')[4]
+            # There were images from 'im_glossary' that appeared on
+            # several different images - made things tricky
+            if sub_source != 'im_regspec':
+                c = [b.attrs['name'],b.attrs['title'],b.attrs['alt'],src]
+                taxo = [x.get_text() for x in t[3:]]
+                d = ';'.join(c+taxo+['\n'])
+                meta_info.append(d)
+                img_arr = imread(requests.get(src, stream=True).raw)
+                imsave("../data/troutnut/{}/{}.jpg".format(order_dir,a[i]['name']), img_arr)
         print(len(a), "images saved successfully")
         with open("../data/troutnut/{}/meta.txt".format(order_dir),"a") as f:
             for i in range(len(meta_info)):
