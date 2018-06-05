@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib import keras
 from keras import backend as K
 from keras.models import Sequential, Model
-from keras.layers import Convolution2D, MaxPooling2D, Input
+from keras.layers import Convolution2D, MaxPooling2D, PReLU, Input
 from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.normalization import BatchNormalization
 from keras.applications.imagenet_utils import preprocess_input, decode_predictions
@@ -39,12 +39,12 @@ def build_model():
     # be fed the features extracted by the imagenet layers, and learn
     # to identify different bentic macroinvertebrates from them.
     x = Flatten(input_shape=vgg16.output.shape)(vgg16.output)
-    x = Dense(4096, activation='relu', name='fully_connected_1')(x)
+    x = Dense(4096, activation='PReLU', name='fully_connected_1')(x)
     # Dropout - to help prevent overfitting
     x = Dropout(0.3)(x)
-    x = Dense(4096, activation='relu', name='fully_connected_2')
+    x = Dense(4096, activation='PReLU', name='fully_connected_2')
     x = Dropout(0.4)(x)
-    x = Dense(2048, activation='relu', name='fully_connected_3')(x)
+    x = Dense(2048, activation='PReLU', name='fully_connected_3')(x)
     x = Dropout(0.5)(x)
     # This batch norbalization layer prevents something called covariate shift -
     # basically, for each batch we feed into this CNN, we're taking input
