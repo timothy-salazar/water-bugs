@@ -146,7 +146,7 @@ def build_indiv_models():
     test_df = test_img_df()
     test_ind = np.arange(test_df.shape[0])
     print('Building test arrays')
-    test_x, text_y = make_list_np(test_df, test_ind)
+    test_x, test_y = make_list_np(test_df, test_ind)
 
     df = train_img_df()
     df_ind = np.arange(df.shape[0])
