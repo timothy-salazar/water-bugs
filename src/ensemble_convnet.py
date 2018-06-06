@@ -222,7 +222,7 @@ def test_report(model,t,model_num,not_ensemble = True):
     y_pred = [inv_map[np.argmax(i)] for i in pred]
     y_true = [inv_map[np.argmax(i)] for i in y_cat]
     c_str = classification_report(y_cat,y_pred)
-    if not_ensemble = True:
+    if not_ensemble == True:
          save_weights(model,c_str,model_num)
     print(c_str)
 
