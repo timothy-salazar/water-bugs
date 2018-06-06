@@ -40,12 +40,21 @@ def build_model():
     # be fed the features extracted by the imagenet layers, and learn
     # to identify different bentic macroinvertebrates from them.
     x = Flatten(input_shape=vgg.output.shape)(vgg.output)
-    x = Dense(4096, activation=PReLU(), name='fully_connected_1')(x)
+    x = Dense(4096, name='fully_connected_1')(x)
+    # here is where I'm adding the PReLU activation layer. Normally I would
+    # be able to set the activation function at the same time I created the dense
+    # layer, like this:
+    #    x = Dense(4096, activation='relu', name='fully_connected_1')(x)
+    # but advanced activation layers like PReLU need to be instantiated more 
+    # explicitely
+    x = PReLU()(x)
     # Dropout - to help prevent overfitting
     x = Dropout(0.3)(x)
-    x = Dense(4096, activation=PReLU(), name='fully_connected_2')(x)
+    x = Dense(4096, name='fully_connected_2')(x)
+    x = PReLU()(x)
     x = Dropout(0.4)(x)
-    x = Dense(2048, activation=PReLU(), name='fully_connected_3')(x)
+    x = Dense(2048, name='fully_connected_3')(x)
+    x = PReLU()(x)
     x = Dropout(0.5)(x)
     # This batch norbalization layer prevents something called covariate shift -
     # basically, for each batch we feed into this CNN, we're taking input
@@ -89,7 +98,7 @@ def run_model(model):
     early_stopping = EarlyStopping(monitor='val_acc', min_delta=0.01, patience=8, verbose=0, mode='auto')
     model.fit_generator(
             train_generator,
-            steps_per_epoch=126,
+            steps_per_epoch=108,
             epochs=100,
             validation_data=validation_generator,
             validation_steps=32,
@@ -120,7 +129,7 @@ def run_model(model):
     '''
     t = train_generator.class_indices
     test_report(model,t)
-    print(model.evaluate_generator(validation_generator))
+    print(model.evaluate_generator(validation_generator, steps=36))
 
 def test_report(model,t):
     # Input: our trained model, and the dictionary returned by the
