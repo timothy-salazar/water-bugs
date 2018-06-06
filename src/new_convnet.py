@@ -170,7 +170,7 @@ def run_model(model):
             train_generator,
             steps_per_epoch= len(train_index)/32,
             epochs=100,
-            validation_data=(val_x, val_y)
+            validation_data=(val_x, val_y),
             #validation_data=validation_generator,
             #validation_steps=len(val_index)/32,
             class_weight=cat_weights,
