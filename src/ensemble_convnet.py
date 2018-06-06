@@ -247,7 +247,7 @@ def build_ensemble():
     model_4 = build_model()
     ensemble = [model_0, model_1, model_2, model_3, model_4]
     for model_num, sub_model in enumerate(ensemble):
-        n = 'ensemble0'
+        n = 'ensemble1'
         p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
         sub_model.load_weights(p)
     benthic_ensemble = BenthicEnsemble(ensemble)
@@ -262,7 +262,7 @@ def save_weights(model,c_str, model_num):
     #now = datetime.datetime.now()
     #n = now.strftime("%m%d_%H-%M")
     dir_conts = os.listdir('../data/ensemble_weights')
-    n = 'ensemble0'
+    n = 'ensemble1'
     p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
     model.save_weights(p)
     with open('../data/ensemble_weights/meta.txt','a') as f:
