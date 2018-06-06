@@ -141,7 +141,7 @@ def get_cat_weights(df):
 
 def build_ensemble():
 
-    test_df = test_imf_df()
+    test_df = test_img_df()
     test_ind = np.arange(test_df.shape[0])
     test_x, text_y = make_list_np(test_df, test_ind)
 
