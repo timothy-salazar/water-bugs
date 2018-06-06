@@ -96,7 +96,10 @@ def make_list_np(df, split_ind):
         cat_weights: the weights for the categories (to be used to deal with
             class imbalance - optional)
     '''
-    order_to_int = {'Diptera':0,'Ephemeroptera':1,'Plecoptera':2,'Trichoptera':3}
+    order_to_int = {'Diptera':[1,0,0,0],
+                'Ephemeroptera':[0,1,0,0],
+                'Plecoptera':[0,0,1,0],
+                'Trichoptera':[0,0,0,1]}
     iml = []
     y_cat = []
     for i in split_ind:
@@ -106,7 +109,7 @@ def make_list_np(df, split_ind):
         i_path = '../data/{}/{}/{}'.format(d,o,f)
         iml.append(cv2.resize(cv2.imread(i_path,1),(224,224),interpolation = cv2.INTER_AREA))
         y_cat.append(order_to_int[o])
-    y_cat = np.array(y_cat) #.reshape(1,4)
+    y_cat = np.array(y_cat) #.reshape(-1,4)
     iml = np.stack(iml)
     #iml = np.array(iml)
     #num_counts = dict(zip(*np.unique(y_cat, return_counts=True)))
@@ -126,7 +129,10 @@ def train_img_df():
     return df
 
 def get_cat_weights(df):
-    order_to_int = {'Diptera':0,'Ephemeroptera':1,'Plecoptera':2,'Trichoptera':3}
+    order_to_int = {'Diptera':[1,0,0,0],
+                    'Ephemeroptera':[0,1,0,0],
+                    'Plecoptera':[0,0,1,0],
+                    'Trichoptera':[0,0,0,1]}
     cat_list = [order_to_int[i] for i in df.order]
     num_counts = np.unique(cat_list, return_counts = True)
     cat_weights = dict(zip(num_counts[0], num_counts[1]/df.shape[0]))
