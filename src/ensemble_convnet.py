@@ -195,6 +195,7 @@ def build_indiv_models():
         test_report(model,t,i)
         print(model.evaluate(test_x, test_y))
         del model
+        gc.collect()
 
 def test_report(model,t,model_num,not_ensemble = True):
     # Input: our trained model, and the dictionary returned by the
