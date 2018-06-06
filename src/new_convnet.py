@@ -61,8 +61,10 @@ def build_model():
     # feature for and normalizing it so we don't get drastically different
     # distributions
     x = BatchNormalization()(x)
-    predictions = Dense(4, activation = 'softmax')(x)
+    #predictions = Dense(4, activation = 'softmax')(x)
+    #model = Model(inputs=vgg.input, outputs=predictions)
     model = Model(inputs=vgg.input, outputs=predictions)
+    model.add(Dense(4, activation = 'softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy',
                     metrics=['mae','accuracy'])
     return model
