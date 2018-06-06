@@ -54,13 +54,14 @@ def build_model():
     x = PReLU()(x)
     x = Dropout(0.4)(x)
     x = Dense(2048, name='fully_connected_3')(x)
-    x = PReLU()(x)
-    x = Dropout(0.5)(x)
     # This batch norbalization layer prevents something called covariate shift -
     # basically, for each batch we feed into this CNN, we're taking input
     # feature for and normalizing it so we don't get drastically different
     # distributions
     x = BatchNormalization()(x)
+    x = PReLU()(x)
+    x = Dropout(0.5)(x)
+
     #predictions = Dense(4, activation = 'softmax')(x)
     #model = Model(inputs=vgg.input, outputs=predictions)
     predictions = Dense(4, activation='softmax')(x)
@@ -177,7 +178,7 @@ def run_model(model):
             validation_data=(val_x, val_y),
             #validation_data=validation_generator,
             #validation_steps=len(val_index)/32,
-            #class_weight=cat_weights,
+            class_weight=cat_weights,
             use_multiprocessing=True,
             callbacks=[early_stopping])
     t = train_generator.class_indices
