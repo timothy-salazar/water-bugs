@@ -103,6 +103,7 @@ def make_list_np(df, split_ind):
         iml.append(cv2.resize(cv2.imread(i_path,1),(224,224),interpolation = cv2.INTER_AREA))
         y_cat.append(order_to_int[o])
     y_cat = np.array(y_cat)
+    iml = np.stack(iml)
     #num_counts = dict(zip(*np.unique(y_cat, return_counts=True)))
     #num_counts = np.unique(y_cat, return_counts = True)
     #cat_weights = np.array([num_counts[i] for i in y_cat])/df.shape[0]
