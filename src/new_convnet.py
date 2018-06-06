@@ -171,7 +171,7 @@ def run_model(model):
             epochs=100,
             validation_data=validation_generator,
             validation_steps=len(validation_index)/32,
-            class_weight=cat_weights
+            class_weight=cat_weights,
             use_multiprocessing=True,
             callbacks=[early_stopping])
     t = train_generator.class_indices
