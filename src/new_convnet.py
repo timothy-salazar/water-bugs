@@ -74,8 +74,8 @@ def model_input():
     df = pd.read_csv('../data/train/xy.txt')
     df_ind = np.arange(df.shape[0])
     train_index, val_index = train_test_split(df_ind, test_size=val_fraction)
-    train_x, train_y, train_weights = make_list_np(df, train_index)
-    val_x, val_y, c = make_list_np(df, val_index)
+    train_x, train_y = make_list_np(df, train_index)
+    val_x, val_y = make_list_np(df, val_index)
 
 
 def make_list_np(df, split_ind):
@@ -133,8 +133,8 @@ def run_model(model):
     df = train_img_df()
     df_ind = np.arange(df.shape[0])
     train_index, val_index = train_test_split(df_ind, test_size=val_fraction)
-    train_x, train_y, train_weights = make_list_np(df, train_index)
-    val_x, val_y, c = make_list_np(df, val_index)
+    train_x, train_y = make_list_np(df, train_index)
+    val_x, val_y = make_list_np(df, val_index)
 
     train_datagen = ImageDataGenerator(
         # the proportions and color of my images are important, so I've opted
