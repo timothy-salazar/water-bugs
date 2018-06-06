@@ -15,6 +15,7 @@ from keras.callbacks import EarlyStopping
 from matplotlib import pyplot as plt
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from scipy.stats import mode
 import cv2
 import pandas as pd
 import numpy as np
@@ -140,7 +141,7 @@ def get_cat_weights(df):
     cat_weights = dict(zip(num_counts[0], num_counts[1]/df.shape[0]))
     return cat_weights
 
-def build_ensemble():
+def build_indiv_models():
 
     test_df = test_img_df()
     test_ind = np.arange(test_df.shape[0])
@@ -182,7 +183,6 @@ def build_ensemble():
                 train_generator,
                 steps_per_epoch= len(train_index)/32,
                 epochs=100,
-                #validation_data=(val_x, val_y),
                 validation_data=validation_generator,
                 validation_steps=len(val_index)/32,
                 class_weight=cat_weights,
@@ -195,7 +195,7 @@ def build_ensemble():
         test_report(model,t,i)
         print(model.evaluate(test_x, test_y))
 
-def test_report(model,t,model_num):
+def test_report(model,t,model_num,not_ensemble = True):
     # Input: our trained model, and the dictionary returned by the
     # class_indices method of any of our generators (we will get the same
     # result for any of them, since the classes are assigned indexes in
@@ -222,8 +222,37 @@ def test_report(model,t,model_num):
     y_pred = [inv_map[np.argmax(i)] for i in pred]
     y_true = [inv_map[np.argmax(i)] for i in y_cat]
     c_str = classification_report(y_cat,y_pred)
-    save_weights(model,c_str,model_num)
+    if not_ensemble = True:
+         save_weights(model,c_str,model_num)
     print(c_str)
+
+
+class BenthicEnsemble():
+
+    def __init__(self,ensemble):
+        self.ensemble = ensemble
+
+    def predict(iml):
+        pred_list = []
+        for img in iml:
+            img_preds = [sub_model.predict(img) for sub_model in ensemble]
+            pred_list.append(mode(pred_list))
+        return np.array(pred_list)
+
+def build_ensemble():
+    model_0 = build_model()
+    model_1 = build_model()
+    model_2 = build_model()
+    model_3 = build_model()
+    model_4 = build_model()
+    ensemble = [model_0, model_1, model_2, model_3, model_4]
+    for model_num, sub_model in enumerate(ensemble):
+        n = 'ensemble0'
+        p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
+        sub_model.load_weights(p)
+    benthic_ensemble = BenthicEnsemble(ensemble)
+    return benthic_ensemble
+
 
 def save_weights(model,c_str, model_num):
     # this will save the weights for my model in a hdf5 file.
@@ -234,13 +263,25 @@ def save_weights(model,c_str, model_num):
     #n = now.strftime("%m%d_%H-%M")
     dir_conts = os.listdir('../data/ensemble_weights')
     n = 'ensemble0'
-    #n = np.max([int(i.split('_')[-2]) for i in os.listdir('../data/ensemble_weights')])
     p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
     model.save_weights(p)
     with open('../data/ensemble_weights/meta.txt','a') as f:
         f.write('weights_{}'.format(n)+'\nc_str')
 
 if __name__ == '__main__':
-    build_ensemble()
-    # model = build_model()
-    # run_model(model)
+    t = {'Diptera':0,
+        'Ephemeroptera':1,
+        'Plecoptera':2,
+        'Trichoptera':3}
+    build_indiv_models()
+    benthic_ensemble = build_ensemble()
+    test_report(benthic_ensemble,t,0,not_ensemble = False)
+
+
+
+
+
+
+
+
+#
