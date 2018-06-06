@@ -22,6 +22,7 @@ import time
 import os
 import sys
 import datetime
+import tqdm
 
 
 def build_model():
@@ -98,7 +99,7 @@ def make_list_np(df, split_ind):
                     'Trichoptera':[0,0,0,1]}
     iml = []
     y_cat = []
-    for i in split_ind:
+    for i in tqdm(split_ind):
         f = df.file_name.iloc[i]
         o = df.order.iloc[i]
         d = df.img_dir.iloc[i]
@@ -143,6 +144,7 @@ def build_ensemble():
 
     test_df = test_img_df()
     test_ind = np.arange(test_df.shape[0])
+    print('Building test arrays')
     test_x, text_y = make_list_np(test_df, test_ind)
 
     df = train_img_df()
@@ -159,7 +161,9 @@ def build_ensemble():
         val_index = df_ind[v_start:v_end]
         train_index = np.concatenate([train_index,df_ind[0:v_start]])
 
+        print('Ensemble {}: building training arrays'.format(i))
         train_x, train_y = make_list_np(df, train_index)
+        print('Ensemble {}: building validation arrays'.format(i))
         val_x, val_y = make_list_np(df, val_index)
 
         train_datagen = ImageDataGenerator(
