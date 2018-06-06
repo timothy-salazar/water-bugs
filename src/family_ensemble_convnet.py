@@ -270,6 +270,8 @@ def save_weights(model,c_str, model_num):
         f.write('weights_{}'.format(n)+'\nc_str')
 
 if __name__ == '__main__':
+
+    # baetidae, ephemerellidae, ephemeridae, heptageniidae, leptohyphidae
     t = {'Diptera':0,
         'Ephemeroptera':1,
         'Plecoptera':2,
