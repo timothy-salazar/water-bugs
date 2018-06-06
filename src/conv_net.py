@@ -2,7 +2,8 @@ import tensorflow as tf
 from tensorflow.contrib import keras
 from keras import backend as K
 from keras.models import Sequential, Model
-from keras.layers import Convolution2D, MaxPooling2D, PReLU, Input
+from keras.layers import Convolution2D, MaxPooling2D, Input
+from keras.layers.advanced_activations import PReLU
 from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.normalization import BatchNormalization
 from keras.applications.imagenet_utils import preprocess_input, decode_predictions
@@ -27,24 +28,24 @@ def build_model():
     # I'm using the imagenet pretrained weights, so I want to preserve
     # the (224,224,3) image format these convolutional layers were trained
     # on.
-    vgg16 = vgg16.VGG16(weights='imagenet', include_top=False,
+    vgg = vgg16.VGG16(weights='imagenet', include_top=False,
                         input_tensor=Input((224, 224, 3)))
     # I want to preserve the imagenet layers initially, otherwise my randomly
     # initialized densly connected layers could cause problems, so I freeze
     # them.
-    for l in vgg16.layers:
+    for l in vgg.layers:
         l.trainable = False
     # I want to pass the output from the imagenet-trained convolutional layers
     # to my own, randomly intitialized fully-connected layers. These will
     # be fed the features extracted by the imagenet layers, and learn
     # to identify different bentic macroinvertebrates from them.
-    x = Flatten(input_shape=vgg16.output.shape)(vgg16.output)
-    x = Dense(4096, activation='PReLU', name='fully_connected_1')(x)
+    x = Flatten(input_shape=vgg.output.shape)(vgg.output)
+    x = Dense(4096, activation=PReLU(), name='fully_connected_1')(x)
     # Dropout - to help prevent overfitting
     x = Dropout(0.3)(x)
-    x = Dense(4096, activation='PReLU', name='fully_connected_2')
+    x = Dense(4096, activation=PReLU(), name='fully_connected_2')(x)
     x = Dropout(0.4)(x)
-    x = Dense(2048, activation='PReLU', name='fully_connected_3')(x)
+    x = Dense(2048, activation=PReLU(), name='fully_connected_3')(x)
     x = Dropout(0.5)(x)
     # This batch norbalization layer prevents something called covariate shift -
     # basically, for each batch we feed into this CNN, we're taking input
@@ -52,7 +53,7 @@ def build_model():
     # distributions
     x = BatchNormalization()(x)
     predictions = Dense(4, activation = 'softmax')(x)
-    model = Model(inputs=vgg16.input, outputs=predictions)
+    model = Model(inputs=vgg.input, outputs=predictions)
     model.compile(optimizer='adam', loss='categorical_crossentropy',
                     metrics=['mae','accuracy'])
     return model
