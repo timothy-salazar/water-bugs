@@ -63,7 +63,7 @@ def build_model():
     x = BatchNormalization()(x)
     #predictions = Dense(4, activation = 'softmax')(x)
     #model = Model(inputs=vgg.input, outputs=predictions)
-    model = Model(inputs=vgg.input, outputs=predictions)
+    model = Model(inputs=vgg.input, outputs=x)
     model.add(Dense(4, activation = 'softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy',
                     metrics=['mae','accuracy'])
