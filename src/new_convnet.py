@@ -39,7 +39,7 @@ def build_model():
     # to my own, randomly intitialized fully-connected layers. These will
     # be fed the features extracted by the imagenet layers, and learn
     # to identify different bentic macroinvertebrates from them.
-    x = Flatten(input_shape=vgg.output.shape)(vgg.output)
+    x = Flatten(input_shape=vgg.output.shape)(vgg)
     x = Dense(4096, name='fully_connected_1')(x)
     # here is where I'm adding the PReLU activation layer. Normally I would
     # be able to set the activation function at the same time I created the dense
