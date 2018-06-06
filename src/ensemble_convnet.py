@@ -23,7 +23,7 @@ import time
 import os
 import sys
 import datetime
-import tqdm
+from tqdm import tqdm
 
 
 def build_model():
