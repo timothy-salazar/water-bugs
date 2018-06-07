@@ -237,7 +237,7 @@ class BenthicEnsemble():
     def __init__(self,ensemble):
         self.ensemble = ensemble
 
-    def predict(iml):
+    def predict(self,iml):
         pred_list = []
         for img in iml:
             img_preds = [sub_model.predict(img) for sub_model in ensemble]
