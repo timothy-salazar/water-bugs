@@ -98,21 +98,23 @@ def test_report(model,t,model_num,not_ensemble = True):
             y_cat.append(o)
         except ValueError:
             print('Value Error')
-    iml = np.stack(iml)
+    #iml = np.stack(iml)
     pred = model.predict(iml)
     inv_map = {v: k for k, v in t.items()}
     y_pred = []
-    for i in pred:
+    y_true = []
+    for i,j in zip(pred,y_cat):
         try:
             y_pred.append(inv_map[np.argmax(i)])
+            y_true.append(inv_map[np.argmax(j)])
         except ValueError:
             print('Value Error')
-    y_true = []
-    for i in y_cat:
-        try:
-            y_true.append(inv_map[np.argmax(i)])
-        except ValueError:
-            print('Value Error')
+
+    # for i in y_cat:
+    #     try:
+    #         y_true.append(inv_map[np.argmax(i)])
+    #     except ValueError:
+    #         print('Value Error')
     #y_pred = [inv_map[np.argmax(i)] for i in pred]
     #y_true = [inv_map[np.argmax(i)] for i in y_cat]
     c_str = classification_report(y_cat,y_pred)
