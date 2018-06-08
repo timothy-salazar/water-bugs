@@ -126,6 +126,13 @@ def train_img_df():
     df = pd.concat([df,df2])
     df['index'] = np.arange(df.shape[0])
     df.set_index('index', inplace=True)
+    print("original training set size:",df.shape[0])
+    # there were some duplicate images, I want to get rid of them.
+    d_img = pd.read_csv('../data/duplicate_images.txt',header=None)
+    df = df.loc[np.where([i not in set(d_img[0]) for i in df.file_name])[0]].copy()
+    df['index'] = np.arange(df.shape[0])
+    df.set_index('index', inplace=True)
+    print("training set size after removing duplicates:",df.shape[0])
     return df
 
 def test_img_df():
