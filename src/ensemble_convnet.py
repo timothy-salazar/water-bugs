@@ -255,9 +255,10 @@ class BenthicEnsemble():
             p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
             sub_model.load_weights(p)
 
-    def predict(self,iml,t):
+    def predict(self,iml):
+
         pred_list = []
-        inv_map = {v: k for k, v in t.items()}
+        #inv_map = {v: k for k, v in t.items()}
         print('Making predictions for sub models...')
         for sub_model in tqdm(self.ensemble):
             pred = sub_model.predict[iml]
