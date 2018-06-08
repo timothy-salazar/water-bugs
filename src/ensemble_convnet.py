@@ -235,7 +235,7 @@ def test_report(model,t,model_num,not_ensemble = True):
 
 class BenthicEnsemble():
 
-    def __init__(self,ensemble):
+    def __init__(self):
         #self.ensemble = ensemble
         self.build_ensemble()
         self.load_all_weights()
@@ -261,7 +261,7 @@ class BenthicEnsemble():
         print('Making predictions for sub models...')
         for sub_model in tqdm(self.ensemble):
             pred = sub_model.predict[iml]
-            pred = [inv_map[np.argmax(i)] for i in pred]
+            #pred = [inv_map[np.argmax(i)] for i in pred]
             pred_list.append(pred)
         pred_list = np.array(pred_list)
         print('Getting ensemble predictions...')
@@ -269,11 +269,11 @@ class BenthicEnsemble():
         return mode(pred_list)[0][0]
 
 
-        pred_list = []
-        for img in iml:
-            img_preds = [sub_model.predict(img) for sub_model in ensemble]
-            pred_list.append(mode(pred_list))
-        return np.array(pred_list)
+        # pred_list = []
+        # for img in iml:
+        #     img_preds = [sub_model.predict(img) for sub_model in ensemble]
+        #     pred_list.append(mode(pred_list))
+        # return np.array(pred_list)
 
 def latest_dir_nums():
     dir_cont = os.listdir('../data/ensemble_weights')
@@ -317,14 +317,14 @@ def save_weights(model,c_str, model_num):
 
 if __name__ == '__main__':
     t = {'Diptera':0,
-        'Ephemeroptera':1,
-        'Plecoptera':2,
-        'Trichoptera':3}
-    build_indiv_models()
-    benthic_ensemble = build_ensemble()
+       'Ephemeroptera':1,
+       'Plecoptera':2,
+       'Trichoptera':3}
+    #build_indiv_models()
+    #benthic_ensemble = build_ensemble()
+    #test_report(benthic_ensemble,t,0,not_ensemble = False)
+    benthic_ensemble = BenthicEnsemble()
     test_report(benthic_ensemble,t,0,not_ensemble = False)
-
-
 
 
 
