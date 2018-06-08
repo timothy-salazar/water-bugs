@@ -332,7 +332,7 @@ if __name__ == '__main__':
        'Ephemeroptera':1,
        'Plecoptera':2,
        'Trichoptera':3}
-    #build_indiv_models()
+    build_indiv_models()
     #benthic_ensemble = build_ensemble()
     #test_report(benthic_ensemble,t,0,not_ensemble = False)
     benthic_ensemble = BenthicEnsemble()
