@@ -261,7 +261,7 @@ class BenthicEnsemble():
         #inv_map = {v: k for k, v in t.items()}
         print('Making predictions for sub models...')
         for sub_model in tqdm(self.ensemble):
-            pred = sub_model.predict[iml]
+            pred = sub_model.predict(iml)
             #pred = [inv_map[np.argmax(i)] for i in pred]
             pred_list.append(pred)
         pred_list = np.array(pred_list)
