@@ -213,6 +213,10 @@ def test_report(model,t,model_num,not_ensemble = True):
     # 'predict' method on our model, and then feeds the predicted labels
     # and actual labels to classification_report().
     df = pd.read_csv('../data/test/xy.txt')
+    d_img = pd.read_csv('../data/duplicate_images.txt',header=None)
+    df = df.loc[np.where([i not in set(d_img[0]) for i in df.file_name])[0]].copy()
+    df['index'] = np.arange(df.shape[0])
+    df = df.set_index('index')
     y_cat = []
     iml = []
     a = np.random.choice(np.arange(df.file_name.shape[0]),400)
