@@ -24,6 +24,7 @@ import os
 import sys
 import datetime
 import gc
+import re
 from tqdm import tqdm
 
 
@@ -235,14 +236,50 @@ def test_report(model,t,model_num,not_ensemble = True):
 class BenthicEnsemble():
 
     def __init__(self,ensemble):
-        self.ensemble = ensemble
+        #self.ensemble = ensemble
+        self.build_ensemble()
+        self.load_all_weights()
 
-    def predict(self,iml):
+    def build_ensemble(self):
+        model_0 = build_model()
+        model_1 = build_model()
+        model_2 = build_model()
+        model_3 = build_model()
+        model_4 = build_model()
+        self.ensemble = [model_0, model_1, model_2, model_3, model_4]
+
+    def load_all_weights(self):
+        ens_n, ens_m = latest_dir_nums()
+        n = 'ensemble{}'.format(ens_n)
+        for model_num, sub_model in enumerate(self.ensemble):
+            p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
+            sub_model.load_weights(p)
+
+    def predict(self,iml,t):
+        pred_list = []
+        inv_map = {v: k for k, v in t.items()}
+        print('Making predictions for sub models...')
+        for sub_model in tqdm(self.ensemble):
+            pred = sub_model.predict[iml]
+            pred = [inv_map[np.argmax(i)] for i in pred]
+            pred_list.append(pred)
+        pred_list = np.array(pred_list)
+        print('Getting ensemble predictions...')
+        #mode_list = [mode(pred_list[:,i]) for i in tqdm(range(len(iml)))]
+        return mode(pred_list)[0][0]
+
+
         pred_list = []
         for img in iml:
             img_preds = [sub_model.predict(img) for sub_model in ensemble]
             pred_list.append(mode(pred_list))
         return np.array(pred_list)
+
+def latest_dir_nums():
+    dir_cont = os.listdir('../data/ensemble_weights')
+    dir_nums = [int(i.split('_')[-2][-1]) for i in dir_cont if i != 'model_info.txt']
+    unique_nums = np.unique(dir_nums, return_counts = True)
+    return unique_nums[0][-1], unique_nums[1][-1]
 
 def build_ensemble():
     model_0 = build_model()
@@ -251,8 +288,9 @@ def build_ensemble():
     model_3 = build_model()
     model_4 = build_model()
     ensemble = [model_0, model_1, model_2, model_3, model_4]
+    ens_n, ens_m = latest_dir_nums()
+    n = 'ensemble{}'.format(ens_n)
     for model_num, sub_model in enumerate(ensemble):
-        n = 'ensemble3'
         p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
         sub_model.load_weights(p)
     benthic_ensemble = BenthicEnsemble(ensemble)
@@ -266,11 +304,15 @@ def save_weights(model,c_str, model_num):
     # Report, in a metainformation file called 'meta.txt'
     #now = datetime.datetime.now()
     #n = now.strftime("%m%d_%H-%M")
-    dir_conts = os.listdir('../data/ensemble_weights')
-    n = 'ensemble3'
+
+    ens_n, ens_m = latest_dir_nums()
+    if ens_m == 5:
+        ens_n = ens_n + 1
+    #dir_conts = os.listdir('../data/ensemble_weights')
+    n = 'ensemble{}'.format(ens_n)
     p = '../data/ensemble_weights/ensemble_{}_{}.h5'.format(n, model_num)
     model.save_weights(p)
-    with open('../data/ensemble_weights/meta.txt','a') as f:
+    with open('../data/ensemble_weights/model_info.txt','a') as f:
         f.write('weights_{}'.format(n)+'\nc_str')
 
 if __name__ == '__main__':
